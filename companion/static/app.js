@@ -132,6 +132,7 @@
       case 'atmosphere_snapshot': onAtmosphereSnapshot(msg.payload, msg.ts); break;
       case 'member_joined': onMemberJoined(msg.payload); break;
       case 'member_left': onMemberLeft(msg.payload); break;
+      case 'voice_channel_snapshot': onVoiceChannelSnapshot(msg.payload); break;
       case 'memory_list_response': onMemoryListResponse(msg.payload); break;
       // Lane E: music
       case 'music_started': onMusicStarted(msg.payload); break;
@@ -638,6 +639,26 @@
     if (!key) return;
     state.members.delete(key);
     if (state.selectedSpeaker === key) state.selectedSpeaker = null;
+    renderBubbles();
+  }
+
+  // Lane B2：bridge 在新 client 連上時推送的完整成員快照。
+  // 清掉本地狀態、用 payload 重建，讓 UI 第一秒就有完整 bubble，
+  // 不用等 atmosphere snapshot fallback 慢慢累。
+  function onVoiceChannelSnapshot(payload) {
+    if (!payload || !Array.isArray(payload.members)) return;
+    state.members.clear();
+    payload.members.forEach((m) => {
+      const key = memberKey(m);
+      if (!key) return;
+      state.members.set(key, {
+        name: m.name || m.speaker || key,
+        stage: m.stage || 'stranger',
+        activity: m.activity || 'mid',
+        marvin: m.marvin === true || m.marvin === 'yes',
+        avatar: m.avatar || null,
+      });
+    });
     renderBubbles();
   }
 

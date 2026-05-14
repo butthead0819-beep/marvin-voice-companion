@@ -214,3 +214,48 @@ def test_music_recommendations_response_protocol_known():
     from companion.event_protocol import KNOWN_EVENT_TYPES, BRIDGE_TO_BROWSER_EVENTS
     assert "music_recommendations_response" in BRIDGE_TO_BROWSER_EVENTS
     assert "music_recommendations_request" in KNOWN_EVENT_TYPES
+
+
+# ------------------------------------------------------------------ Lane B2: voice_channel_snapshot
+
+def test_voice_channel_snapshot_event_constant_exists():
+    """VOICE_CHANNEL_SNAPSHOT 必須被收錄為 bridge→browser 事件。"""
+    from companion import event_protocol as ep
+    assert hasattr(ep, "VOICE_CHANNEL_SNAPSHOT")
+    assert ep.VOICE_CHANNEL_SNAPSHOT == "voice_channel_snapshot"
+    assert ep.VOICE_CHANNEL_SNAPSHOT in ep.BRIDGE_TO_BROWSER_EVENTS
+    assert ep.VOICE_CHANNEL_SNAPSHOT in ep.KNOWN_EVENT_TYPES
+
+
+def test_app_js_routes_voice_channel_snapshot():
+    """app.js 必須將 voice_channel_snapshot 接到 onVoiceChannelSnapshot handler。"""
+    import pathlib
+    js = pathlib.Path(__file__).resolve().parent.parent / "companion" / "static" / "app.js"
+    text = js.read_text(encoding="utf-8")
+    assert "voice_channel_snapshot" in text, "app.js 應該路由 voice_channel_snapshot 事件"
+    assert "onVoiceChannelSnapshot" in text, "app.js 應該有 onVoiceChannelSnapshot handler"
+
+
+def test_voice_channel_snapshot_event_routes_through_ws(app_and_bridge):
+    """server 廣播 voice_channel_snapshot 到 browser，不會被 protocol 過濾掉。"""
+    app, bridge = app_and_bridge
+    with TestClient(app) as client:
+        with client.websocket_connect("/ws") as ws:
+            evt = {
+                "type": "voice_channel_snapshot",
+                "payload": {
+                    "members": [
+                        {"speaker": "Jack", "name": "狗與露", "marvin": False},
+                    ],
+                    "snapshot_ts": 100.0,
+                },
+                "ts": 101.0,
+            }
+
+            async def emit():
+                await bridge.simulate_incoming(evt)
+
+            client.portal.call(emit)
+            received = ws.receive_json()
+            assert received["type"] == "voice_channel_snapshot"
+            assert received["payload"]["members"][0]["speaker"] == "Jack"

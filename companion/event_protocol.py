@@ -19,6 +19,8 @@ TTS_DONE = "tts_done"
 ATMOSPHERE_SNAPSHOT = "atmosphere_snapshot"
 MEMBER_JOINED = "member_joined"
 MEMBER_LEFT = "member_left"
+# Lane B2：新 client 連上時，bridge 立即推當前語音頻道成員快照
+VOICE_CHANNEL_SNAPSHOT = "voice_channel_snapshot"
 MUSIC_STARTED = "music_started"
 MUSIC_ENDED = "music_ended"
 MUSIC_REACTION = "music_reaction"
@@ -51,6 +53,7 @@ BRIDGE_TO_BROWSER_EVENTS = frozenset(
         ATMOSPHERE_SNAPSHOT,
         MEMBER_JOINED,
         MEMBER_LEFT,
+        VOICE_CHANNEL_SNAPSHOT,
         MUSIC_STARTED,
         MUSIC_ENDED,
         MUSIC_REACTION,
