@@ -65,7 +65,7 @@ This is **the** design constraint of this project. Companion does not own data, 
 
 ```bash
 # 1. Clone
-git clone https://github.com/<your-org>/marvin-voice-companion.git
+git clone https://github.com/butthead0819-beep/marvin-voice-companion.git
 cd marvin-voice-companion
 
 # 2. Install
