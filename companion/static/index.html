@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Marvin Companion</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;1,9..144,300;1,9..144,400&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div id="ws-status" class="disconnected">連線中…</div>
+
+<div class="app" data-mode="idle">
+
+  <!-- STATUS BAR -->
+  <div class="status-bar">
+    <div class="status-left">
+      <div class="status-pill"><span class="dot"></span> <span id="online-count">0</span> 人在線</div>
+      <div class="status-pill"><span class="dot amber"></span> <span class="marvin-state" id="marvin-state">Marvin 聆聽中</span></div>
+    </div>
+    <div class="status-pill" id="channel-name">語音頻道</div>
+  </div>
+
+  <!-- MAIN COLUMN -->
+  <div class="main">
+
+    <!-- BUBBLE GRID -->
+    <div class="card">
+      <div class="card-label">語音頻道</div>
+      <div class="bubble-grid" id="bubble-grid">
+        <div class="empty-hint">尚未有人加入語音頻道</div>
+      </div>
+    </div>
+
+    <!-- MARVIN UTTERANCE + FEEDBACK -->
+    <div class="utterance-card idle" id="utterance-card">
+      <div class="countdown hidden" id="utterance-countdown">5</div>
+      <div class="utterance-meta">
+        <span id="utterance-meta-text">尚未有 Marvin 發話</span>
+      </div>
+      <div class="utterance-text" id="utterance-text">—</div>
+      <div class="feedback-row hidden" id="feedback-row">
+        <button class="feedback-btn" data-label="too_loud" type="button">
+          <span class="feedback-emoji">🤐</span> 太吵
+        </button>
+        <button class="feedback-btn" data-label="too_sharp" type="button">
+          <span class="feedback-emoji">🌶️</span> 太刺
+        </button>
+        <button class="feedback-btn" data-label="too_jolly" type="button">
+          <span class="feedback-emoji">😄</span> 太嗨
+        </button>
+      </div>
+    </div>
+
+    <!-- ATMOSPHERE QUICK CONTROLS -->
+    <div class="card">
+      <div class="card-label">氛圍快速控制</div>
+      <div class="atmos-grid" id="atmos-grid">
+        <button class="atmos-btn" data-mode="silent_5min" type="button">
+          <span class="icon">🤫</span>
+          <div class="label">安靜 5 分鐘<div class="sub">只在被點名時開口</div></div>
+        </button>
+        <button class="atmos-btn" data-mode="serious" type="button">
+          <span class="icon">🎯</span>
+          <div class="label">嚴肅模式<div class="sub">關掉玩笑諷刺</div></div>
+        </button>
+        <button class="atmos-btn" data-mode="shutup" type="button">
+          <span class="icon">💤</span>
+          <div class="label">完全閉嘴<div class="sub">直到重新打開</div></div>
+        </button>
+        <button class="atmos-btn" data-mode="reset" type="button">
+          <span class="icon">🔄</span>
+          <div class="label">恢復預設<div class="sub">取消所有抑制</div></div>
+        </button>
+      </div>
+    </div>
+
+    <!-- VOICE BUTTON (push to talk) -->
+    <button class="voice-button" id="voice-button" type="button">
+      <span class="mic">🎤</span> <span id="voice-label">按住說話</span>
+    </button>
+
+  </div>
+
+  <!-- ========== MUSIC PANEL (auto-show on music_started) ========== -->
+  <section id="music-panel" class="main for-music" hidden>
+
+    <!-- Now playing -->
+    <div class="music-card">
+      <div class="music-now">
+        <div class="waveform">
+          <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+          <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+        </div>
+        <div class="music-info">
+          <div class="music-title" id="music-title">—</div>
+          <div class="music-sub">
+            <span id="music-style">—</span> · for <span class="target" id="music-target">—</span> · <span id="music-source">—</span>
+          </div>
+          <div class="progress"><div class="fill" id="music-progress-fill"></div></div>
+          <div class="time-row">
+            <span id="music-time-current">0:00</span>
+            <span id="music-time-total">0:00</span>
+          </div>
+        </div>
+      </div>
+      <div class="player-controls">
+        <button class="player-btn" data-action="prev" type="button">⏮</button>
+        <button class="player-btn primary" data-action="pause" type="button">⏸</button>
+        <button class="player-btn" data-action="next" type="button">⏭</button>
+        <button class="player-btn" data-action="repeat" type="button">🔁</button>
+        <button class="player-btn" data-action="volume" type="button">🔊</button>
+      </div>
+    </div>
+
+    <!-- Live reactions -->
+    <div class="reactions-card">
+      <div class="card-label">即時反應</div>
+      <div id="music-reactions">
+        <div class="empty-hint" style="padding:8px 0">尚無反應</div>
+      </div>
+    </div>
+
+    <!-- Quick music actions -->
+    <div class="card">
+      <div class="card-label">快速音樂指令</div>
+      <div class="music-quick" id="music-quick">
+        <button class="music-quick-btn" data-style="lo-fi" type="button"><span class="em">🌙</span>lo-fi 模式</button>
+        <button class="music-quick-btn" data-style="jazz" type="button"><span class="em">🎷</span>jazz 模式</button>
+        <button class="music-quick-btn" data-style="citypop" type="button"><span class="em">🏙️</span>citypop</button>
+        <button class="music-quick-btn" data-action="generate" type="button"><span class="em">🎵</span>生成新歌</button>
+        <button class="music-quick-btn" data-action="surprise" type="button"><span class="em">🎭</span>給點驚喜</button>
+        <button class="music-quick-btn" data-action="stop" type="button"><span class="em">⏹️</span>停止音樂</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== DJ SIDE PANEL (auto-show on music mode) ========== -->
+  <aside id="dj-panel" class="side-panel for-music" hidden>
+    <div class="dj-card">
+      <div class="dj-header">
+        <div class="dj-badge">🎧</div>
+        <div>
+          <div class="dj-title">DJ Marvin</div>
+          <div class="dj-subtitle">為你的房間挑歌</div>
+        </div>
+      </div>
+
+      <!-- target tabs -->
+      <div class="dj-target-tabs" id="dj-target-tabs">
+        <div class="dj-target active" data-target="room">房間全體</div>
+      </div>
+
+      <!-- DJ picks for selected target -->
+      <div id="dj-picks">
+        <div class="empty-hint" style="padding:12px 0">DJ 正在挑歌中…</div>
+      </div>
+    </div>
+
+    <!-- Per-user taste + history -->
+    <div class="dj-card" id="dj-user-detail" style="margin-top:14px" hidden>
+      <div class="card-label" id="dj-user-detail-label">點歌歷史</div>
+      <div class="taste-bars" id="dj-taste-bars"></div>
+      <div style="margin-top:14px" id="dj-history-list"></div>
+    </div>
+  </aside>
+
+  <!-- ========== GAME PANEL (auto-show on game_phase_changed) ========== -->
+  <section id="game-panel" class="main for-game" hidden>
+    <div class="game-card">
+      <div class="game-header">
+        <div class="game-title" id="game-title">
+          🕵️ 謊言偵探 <span class="game-round" id="game-round">· 第 1 輪</span>
+        </div>
+        <div class="game-timer" id="game-timer">⏱ —</div>
+      </div>
+
+      <div class="game-phase">
+        <div class="game-phase-label">目前階段</div>
+        <div class="game-phase-text" id="game-phase-text">等待遊戲開始…</div>
+      </div>
+
+      <div class="scoreboard" id="game-scoreboard">
+        <div class="empty-hint" style="padding:8px 0">尚無比分</div>
+      </div>
+
+      <div class="events-log" id="game-events-log">
+        <div class="event fresh"><span class="em">·</span>遊戲事件將顯示於此</div>
+      </div>
+
+      <div class="game-controls" id="game-controls">
+        <button class="game-ctrl-btn" data-action="skip" type="button">⏭ 跳過此輪</button>
+        <button class="game-ctrl-btn" data-action="restart" type="button">🔄 重新開始</button>
+        <button class="game-ctrl-btn danger" data-action="end" type="button">⏹ 結束遊戲</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== GAME SIDE PANEL (atmosphere + spectator + mini scoreboard) ========== -->
+  <aside id="game-side-panel" class="side-panel for-game" hidden>
+    <div class="atmos-card">
+      <div class="card-label">房間氣氛</div>
+      <div class="atmos-status" id="atmos-status">放鬆閒聊</div>
+      <div class="gauge">
+        <div class="gauge-pointer" id="atmos-gauge-pointer" style="left:25%"></div>
+      </div>
+      <div class="gauge-labels">
+        <span>輕鬆</span>
+        <span>專注</span>
+        <span>緊繃</span>
+      </div>
+      <div class="mode-toggle" id="game-mode-toggle">
+        <div class="mode-toggle-btn active" data-mode="participant">參與中</div>
+        <div class="mode-toggle-btn" data-mode="spectator">旁觀模式</div>
+      </div>
+    </div>
+
+    <div class="atmos-card" style="margin-top:12px">
+      <div class="card-label">📊 比分</div>
+      <div class="scoreboard" id="game-mini-scoreboard" style="margin:8px 0 0">
+        <div class="empty-hint" style="padding:8px 0">尚無比分</div>
+      </div>
+    </div>
+
+    <div class="hint" style="margin-top:12px; text-align:center">
+      參與中 — Marvin 自己玩，只有可能耍笨時才打擾你
+    </div>
+  </aside>
+
+  <!-- SIDE PANEL (user detail) -->
+  <div class="side-panel" id="side-panel">
+    <div class="panel-header">
+      <div class="panel-avatar" id="panel-avatar">·</div>
+      <div>
+        <div class="panel-name" id="panel-name">點頭像查看</div>
+        <div class="panel-meta"><span class="stage" id="panel-stage">—</span> · <span id="panel-bias">BIAS 0</span></div>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-section-title">Marvin 的印象</div>
+      <div class="impression" id="panel-impression">尚未有印象記錄。</div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-section-title">❤️ 喜歡 <span style="color:var(--muted2);font-weight:400;text-transform:none;letter-spacing:0">— 拖出移除</span></div>
+      <div class="tag-row" id="panel-likes"></div>
+      <div class="hint">虛線 = 標記疑問，Marvin 下次會主動確認</div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-section-title">❌ 不喜歡</div>
+      <div class="tag-row" id="panel-dislikes"></div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-section-title">💬 最近記憶 <span style="color:var(--muted2);font-weight:400;text-transform:none;letter-spacing:0">— 雙擊標疑</span></div>
+      <div class="memory-list" id="panel-memories"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- FLOATING INPUT (desktop only) -->
+<div class="float-input collapsed" id="float-input">
+  <div class="toggle" id="float-input-toggle">⌨</div>
+  <input type="text" id="float-input-field" placeholder="進階指令、skill 編輯、複雜代言…">
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

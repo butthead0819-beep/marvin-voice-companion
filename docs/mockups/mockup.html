@@ -1,0 +1,1850 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Marvin Companion — UX Mockup</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;1,9..144,300;1,9..144,400&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0A0908;
+    --surface: #141210;
+    --surface2: #1C1917;
+    --border: #2A2622;
+    --text: #F5F0EB;
+    --muted: #7A7068;
+    --muted2: #4A4540;
+    --amber: #F5A623;
+    --amber-dim: #9B6614;
+    --amber-glow: rgba(245,166,35,0.15);
+    --red: #C94A3F;
+    --green: #6FA776;
+    --yellow: #D4A537;
+
+    --stage-inner: #D4A537;
+    --stage-regular: #6FA776;
+    --stage-stranger: #6B6661;
+    --stage-blacklist: #8B3A33;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Instrument Sans', system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 100vh;
+    padding: 24px;
+    overflow-x: hidden;
+  }
+
+  .app {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 16px;
+    align-items: start;
+  }
+
+  /* ============ STATUS BAR ============ */
+  .status-bar {
+    grid-column: 1 / -1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .status-left { display: flex; align-items: center; gap: 16px; }
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+  }
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+  }
+  .dot.amber {
+    background: var(--amber);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  .dot.red { background: var(--red); }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(1.3); }
+  }
+  .marvin-state {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 300;
+    color: var(--amber);
+    font-size: 15px;
+  }
+
+  /* ============ MAIN COLUMN ============ */
+  .main { display: flex; flex-direction: column; gap: 16px; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+  }
+
+  .card-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 12px;
+  }
+
+  /* ============ BUBBLES ============ */
+  .filter-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0;
+  }
+  .filter-tab {
+    padding: 8px 12px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: color 0.2s;
+  }
+  .filter-tab:hover { color: var(--text); }
+  .filter-tab.active {
+    color: var(--text);
+    border-bottom-color: var(--amber);
+  }
+
+  .bubble-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+    gap: 12px;
+  }
+
+  .bubble {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: var(--surface2);
+    border: 2px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.15s ease, border-color 0.2s;
+    overflow: visible;
+  }
+  .bubble:hover {
+    transform: translateY(-2px);
+    border-color: var(--muted2);
+  }
+
+  .bubble .avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Fraunces', serif;
+    font-weight: 400;
+    font-size: 16px;
+    color: var(--bg);
+  }
+  .bubble .name {
+    margin-top: 4px;
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  /* stage colors */
+  .bubble[data-stage="inner"] { border-color: var(--stage-inner); }
+  .bubble[data-stage="inner"] .avatar { background: var(--stage-inner); }
+  .bubble[data-stage="regular"] { border-color: var(--stage-regular); }
+  .bubble[data-stage="regular"] .avatar { background: var(--stage-regular); }
+  .bubble[data-stage="stranger"] { border-color: var(--stage-stranger); }
+  .bubble[data-stage="stranger"] .avatar { background: var(--stage-stranger); }
+
+  /* size by activity */
+  .bubble[data-activity="high"] { transform: scale(1.1); }
+  .bubble[data-activity="low"] { opacity: 0.55; }
+
+  /* speaking pulse */
+  .bubble.speaking::before {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+    border: 2px solid var(--amber);
+    animation: speaking-pulse 1.4s ease-out infinite;
+  }
+  @keyframes speaking-pulse {
+    0% { opacity: 1; transform: scale(1); }
+    100% { opacity: 0; transform: scale(1.25); }
+  }
+
+  /* marvin attention dot */
+  .bubble .marvin-mark {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--amber);
+    border: 2px solid var(--bg);
+    display: none;
+  }
+  .bubble[data-marvin="yes"] .marvin-mark { display: block; }
+
+  /* pin */
+  .bubble .pin {
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    font-size: 10px;
+    color: var(--amber);
+    display: none;
+  }
+  .bubble[data-pin="yes"] .pin { display: block; }
+
+  .show-more {
+    margin-top: 12px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 12px;
+    cursor: pointer;
+    padding: 6px;
+  }
+  .show-more:hover { color: var(--text); }
+
+  /* ============ MARVIN UTTERANCE ============ */
+  .utterance-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    position: relative;
+  }
+
+  .utterance-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .utterance-meta .target {
+    color: var(--amber);
+    font-weight: 500;
+  }
+
+  .utterance-text {
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-size: 20px;
+    line-height: 1.4;
+    color: var(--text);
+    margin-bottom: 14px;
+  }
+
+  .feedback-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .feedback-btn {
+    flex: 1;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 10px 8px;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.15s;
+  }
+  .feedback-btn:hover {
+    border-color: var(--amber);
+    color: var(--text);
+  }
+  .feedback-btn.ok {
+    flex: 0 0 44px;
+  }
+  .feedback-emoji { font-size: 14px; }
+
+  .countdown {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: var(--amber);
+    font-weight: 600;
+  }
+
+  /* ============ ATMOSPHERE QUICK ============ */
+  .atmos-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  .atmos-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 14px 12px;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.15s;
+  }
+  .atmos-btn:hover {
+    border-color: var(--amber);
+  }
+  .atmos-btn.active {
+    background: var(--amber-glow);
+    border-color: var(--amber);
+    color: var(--amber);
+  }
+  .atmos-btn .icon { font-size: 16px; }
+  .atmos-btn .label { flex: 1; text-align: left; }
+  .atmos-btn .sub {
+    font-size: 10px;
+    color: var(--muted);
+    font-weight: 400;
+  }
+
+  /* ============ VOICE BUTTON ============ */
+  .voice-button {
+    margin-top: 8px;
+    background: var(--amber);
+    color: var(--bg);
+    border: none;
+    border-radius: 12px;
+    padding: 22px;
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 18px;
+    width: 100%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: transform 0.1s, background 0.2s;
+  }
+  .voice-button:hover { background: #FFB938; }
+  .voice-button:active { transform: scale(0.98); }
+  .voice-button .mic { font-size: 22px; }
+
+  /* ============ SIDE PANEL (USER DETAIL) ============ */
+  .side-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+    position: sticky;
+    top: 24px;
+  }
+
+  .panel-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 14px;
+  }
+  .panel-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--stage-inner);
+    color: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 400;
+  }
+  .panel-name {
+    font-family: 'Fraunces', serif;
+    font-size: 20px;
+    font-weight: 400;
+    color: var(--text);
+  }
+  .panel-meta {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+  .panel-meta .stage { color: var(--stage-inner); }
+
+  .panel-section { margin-bottom: 16px; }
+  .panel-section-title {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .impression {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 300;
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--text);
+    padding: 12px;
+    background: var(--surface2);
+    border-radius: 8px;
+    border-left: 2px solid var(--amber);
+  }
+
+  .tag-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .tag {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 6px 10px;
+    border-radius: 100px;
+    font-size: 12px;
+    color: var(--text);
+    cursor: grab;
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .tag:hover {
+    border-color: var(--muted2);
+  }
+  .tag.uncertain {
+    border-style: dashed;
+    border-color: var(--yellow);
+    color: var(--yellow);
+    position: relative;
+  }
+  .tag.uncertain::after {
+    content: '?';
+    margin-left: 4px;
+    font-weight: 600;
+  }
+  .tag .cat {
+    color: var(--muted);
+    font-size: 10px;
+    margin-right: 4px;
+  }
+
+  .memory-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .memory-item {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 12.5px;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .memory-item:hover { border-color: var(--muted2); }
+  .memory-item.uncertain {
+    border-style: dashed;
+    border-color: var(--yellow);
+    color: var(--yellow);
+  }
+  .memory-item .date {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+    flex-shrink: 0;
+  }
+
+  .hint {
+    font-size: 10.5px;
+    color: var(--muted2);
+    margin-top: 6px;
+    line-height: 1.4;
+  }
+
+  /* ============ FLOATING INPUT (desktop) ============ */
+  .float-input {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    transition: width 0.3s ease;
+    z-index: 100;
+  }
+  .float-input.collapsed {
+    width: 44px;
+    height: 44px;
+  }
+  .float-input.expanded {
+    width: 360px;
+    height: 44px;
+  }
+  .float-input .toggle {
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--muted);
+    font-size: 16px;
+  }
+  .float-input .toggle:hover { color: var(--amber); }
+  .float-input input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 13px;
+    outline: none;
+    padding-right: 16px;
+    display: none;
+  }
+  .float-input.expanded input { display: block; }
+  .float-input input::placeholder { color: var(--muted2); }
+
+  /* ============ MODE TABS (demo only) ============ */
+  .mode-tabs {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: 4px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 4px;
+    margin: 0 auto;
+    width: fit-content;
+    position: relative;
+    z-index: 50;
+  }
+  .mode-tab {
+    padding: 10px 22px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    cursor: pointer;
+    border-radius: 100px;
+    transition: all 0.2s;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .mode-tab:hover { color: var(--text); }
+  .mode-tab.active {
+    background: var(--amber);
+    color: var(--bg);
+  }
+
+  /* ============ MUSIC PANEL ============ */
+  .music-card {
+    background: linear-gradient(180deg, var(--surface2) 0%, var(--surface) 100%);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+    position: relative;
+    overflow: hidden;
+  }
+  .music-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 20% 0%, var(--amber-glow), transparent 60%);
+    pointer-events: none;
+  }
+  .music-now {
+    position: relative;
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  .waveform {
+    width: 64px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    flex-shrink: 0;
+  }
+  .waveform .bar {
+    width: 3px;
+    background: var(--amber);
+    border-radius: 2px;
+    animation: wave 1.4s ease-in-out infinite;
+  }
+  .waveform .bar:nth-child(1) { height: 30%; animation-delay: 0s; }
+  .waveform .bar:nth-child(2) { height: 70%; animation-delay: 0.1s; }
+  .waveform .bar:nth-child(3) { height: 95%; animation-delay: 0.2s; }
+  .waveform .bar:nth-child(4) { height: 55%; animation-delay: 0.3s; }
+  .waveform .bar:nth-child(5) { height: 80%; animation-delay: 0.4s; }
+  .waveform .bar:nth-child(6) { height: 40%; animation-delay: 0.5s; }
+  @keyframes wave {
+    0%, 100% { transform: scaleY(1); opacity: 1; }
+    50% { transform: scaleY(0.3); opacity: 0.5; }
+  }
+
+  .music-info { flex: 1; min-width: 0; }
+  .music-title {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 300;
+    font-size: 22px;
+    line-height: 1.2;
+    color: var(--text);
+    margin-bottom: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .music-sub {
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .music-sub .target { color: var(--amber); font-weight: 500; }
+
+  .progress {
+    position: relative;
+    height: 3px;
+    background: var(--surface2);
+    border-radius: 2px;
+    margin: 12px 0 8px;
+    overflow: hidden;
+  }
+  .progress .fill {
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 38%;
+    background: var(--amber);
+    border-radius: 2px;
+  }
+  .time-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .player-controls {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 14px;
+  }
+  .player-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    transition: all 0.15s;
+  }
+  .player-btn:hover { border-color: var(--amber); color: var(--amber); }
+  .player-btn.primary {
+    width: 48px;
+    height: 48px;
+    background: var(--amber);
+    color: var(--bg);
+    border-color: var(--amber);
+    font-size: 18px;
+  }
+  .player-btn.primary:hover { background: #FFB938; }
+
+  /* music reactions */
+  .reactions-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .reaction-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    font-size: 13px;
+    border-bottom: 1px dashed var(--border);
+  }
+  .reaction-row:last-child { border: none; }
+  .reaction-icon { font-size: 14px; width: 18px; }
+  .reaction-user { color: var(--text); font-weight: 500; min-width: 70px; }
+  .reaction-text { color: var(--muted); font-size: 12px; flex: 1; }
+
+  .music-quick {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .music-quick-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 6px;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 12px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+  }
+  .music-quick-btn:hover { border-color: var(--amber); color: var(--amber); }
+  .music-quick-btn .em { font-size: 16px; display: block; margin-bottom: 2px; }
+
+  /* ============ GAME PANEL ============ */
+  .game-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+  }
+  .game-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 14px;
+    margin-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .game-title {
+    font-family: 'Fraunces', serif;
+    font-weight: 400;
+    font-size: 20px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .game-round {
+    font-size: 12px;
+    color: var(--muted);
+    margin-left: 4px;
+  }
+  .game-timer {
+    background: var(--surface2);
+    border: 1px solid var(--amber);
+    color: var(--amber);
+    padding: 6px 12px;
+    border-radius: 100px;
+    font-size: 13px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .game-phase {
+    background: var(--surface2);
+    padding: 12px 14px;
+    border-radius: 8px;
+    margin-bottom: 14px;
+    border-left: 2px solid var(--amber);
+  }
+  .game-phase-label {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .game-phase-text {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 300;
+    font-size: 15px;
+    color: var(--text);
+  }
+
+  .scoreboard {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 14px;
+  }
+  .score-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: var(--surface2);
+    border-radius: 6px;
+    font-size: 13px;
+  }
+  .score-row.leader { background: var(--amber-glow); }
+  .score-row .player {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .score-row .badge {
+    background: var(--amber);
+    color: var(--bg);
+    font-size: 9px;
+    font-weight: 600;
+    padding: 1px 5px;
+    border-radius: 4px;
+    letter-spacing: 0.05em;
+  }
+  .score-row .pts {
+    font-family: 'Fraunces', serif;
+    font-size: 16px;
+    color: var(--amber);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .events-log {
+    background: var(--surface2);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 12px;
+    line-height: 1.7;
+  }
+  .events-log .event {
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .events-log .event .em { font-size: 13px; }
+  .events-log .event.fresh { color: var(--text); }
+
+  .game-controls {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 14px;
+  }
+  .game-ctrl-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 6px;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .game-ctrl-btn:hover { border-color: var(--amber); color: var(--amber); }
+  .game-ctrl-btn.danger:hover { border-color: var(--red); color: var(--red); }
+
+  /* Atmosphere gauge */
+  .atmos-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .atmos-status {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 300;
+    font-size: 18px;
+    color: var(--text);
+    margin: 6px 0 10px;
+  }
+  .gauge {
+    position: relative;
+    height: 6px;
+    background: linear-gradient(to right, #6FA776, #D4A537, #C94A3F);
+    border-radius: 3px;
+    margin: 14px 0 6px;
+  }
+  .gauge-pointer {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 14px;
+    height: 14px;
+    background: var(--text);
+    border: 2px solid var(--bg);
+    border-radius: 50%;
+    box-shadow: 0 0 0 2px var(--text);
+  }
+  .gauge-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+  }
+
+  /* Alert (rare, only when needed) */
+  .alert-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    position: relative;
+  }
+  .alert-card.warn {
+    border-color: var(--amber);
+    background: linear-gradient(180deg, var(--amber-glow), var(--surface));
+  }
+  .alert-empty {
+    text-align: center;
+    color: var(--muted2);
+    font-size: 12px;
+    padding: 8px 0;
+    letter-spacing: 0.06em;
+  }
+  .alert-msg {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 300;
+    font-size: 15px;
+    line-height: 1.4;
+    color: var(--text);
+    margin-bottom: 12px;
+  }
+  .alert-actions {
+    display: flex;
+    gap: 6px;
+  }
+  .alert-btn {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 9px;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .alert-btn.primary { border-color: var(--amber); color: var(--amber); }
+  .alert-btn.danger:hover { border-color: var(--red); color: var(--red); }
+  .alert-btn:hover { border-color: var(--text); color: var(--text); }
+
+  /* Spectator toggle */
+  .mode-toggle {
+    display: flex;
+    background: var(--surface2);
+    border-radius: 100px;
+    padding: 3px;
+    margin-top: 10px;
+  }
+  .mode-toggle-btn {
+    flex: 1;
+    padding: 6px;
+    text-align: center;
+    font-size: 11px;
+    color: var(--muted);
+    cursor: pointer;
+    border-radius: 100px;
+    transition: all 0.2s;
+  }
+  .mode-toggle-btn.active {
+    background: var(--amber);
+    color: var(--bg);
+    font-weight: 600;
+  }
+
+  /* ============ DJ MUSIC EXTRAS ============ */
+  .dj-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .dj-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 12px;
+  }
+  .dj-badge {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--amber);
+    color: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
+  .dj-title {
+    font-family: 'Fraunces', serif;
+    font-size: 17px;
+    font-weight: 400;
+    color: var(--text);
+  }
+  .dj-subtitle {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  .dj-target-tabs {
+    display: flex;
+    gap: 4px;
+    overflow-x: auto;
+    margin-bottom: 12px;
+    padding-bottom: 4px;
+  }
+  .dj-target {
+    flex-shrink: 0;
+    padding: 6px 12px;
+    font-size: 11.5px;
+    font-weight: 500;
+    color: var(--muted);
+    background: var(--surface2);
+    border-radius: 100px;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    transition: all 0.2s;
+  }
+  .dj-target:hover { color: var(--text); }
+  .dj-target.active {
+    background: var(--amber);
+    color: var(--bg);
+    border-color: var(--amber);
+  }
+
+  .dj-pick {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 8px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .dj-pick:hover {
+    border-color: var(--amber);
+    transform: translateY(-1px);
+  }
+  .dj-pick .play {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--amber);
+    color: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .dj-pick-body { flex: 1; min-width: 0; }
+  .dj-pick-title {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 300;
+    font-size: 15px;
+    color: var(--text);
+    margin-bottom: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .dj-pick-why {
+    font-size: 11.5px;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+  .dj-pick-why .hl { color: var(--amber); }
+  .dj-pick-meta {
+    font-size: 10px;
+    color: var(--muted2);
+    margin-top: 2px;
+    letter-spacing: 0.05em;
+  }
+
+  .history-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 4px;
+    border-bottom: 1px dashed var(--border);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .history-row:last-child { border: none; }
+  .history-row:hover { background: var(--surface2); }
+  .history-row .h-time {
+    font-size: 10px;
+    color: var(--muted2);
+    width: 50px;
+    flex-shrink: 0;
+    letter-spacing: 0.05em;
+  }
+  .history-row .h-title {
+    flex: 1;
+    font-size: 12.5px;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .history-row .h-tag {
+    font-size: 10px;
+    color: var(--amber);
+    background: var(--amber-glow);
+    padding: 2px 8px;
+    border-radius: 100px;
+    flex-shrink: 0;
+  }
+  .history-row .h-tag.skip { color: var(--red); background: rgba(201,74,63,0.1); }
+  .history-row .h-tag.love { color: var(--green); background: rgba(111,167,118,0.1); }
+
+  .taste-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .taste-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .taste-label {
+    font-size: 12px;
+    color: var(--text);
+    width: 70px;
+    flex-shrink: 0;
+  }
+  .taste-bar {
+    flex: 1;
+    height: 6px;
+    background: var(--surface2);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .taste-bar .fill {
+    height: 100%;
+    background: var(--amber);
+    border-radius: 3px;
+  }
+  .taste-pct {
+    font-size: 11px;
+    color: var(--muted);
+    width: 32px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ============ NOTE BAR ============ */
+  .note {
+    grid-column: 1 / -1;
+    text-align: center;
+    color: var(--muted2);
+    font-size: 11px;
+    padding: 12px 0 0;
+    letter-spacing: 0.05em;
+  }
+
+  /* mode visibility */
+  .app[data-mode="idle"] .for-music,
+  .app[data-mode="idle"] .for-game,
+  .app[data-mode="music"] .for-idle,
+  .app[data-mode="music"] .for-game,
+  .app[data-mode="game"] .for-idle,
+  .app[data-mode="game"] .for-music { display: none; }
+</style>
+</head>
+<body>
+
+<div class="app" data-mode="idle">
+
+  <!-- MODE TABS (demo only) -->
+  <div class="mode-tabs">
+    <div class="mode-tab active" data-mode="idle">待命</div>
+    <div class="mode-tab" data-mode="music">音樂中</div>
+    <div class="mode-tab" data-mode="game">遊戲中</div>
+  </div>
+
+  <!-- STATUS BAR -->
+  <div class="status-bar">
+    <div class="status-left">
+      <div class="status-pill"><span class="dot"></span> 4 人在線</div>
+      <div class="status-pill"><span class="dot amber"></span> <span class="marvin-state">Marvin 聆聽中</span></div>
+    </div>
+    <div class="status-pill">語音頻道 · 半夜閒聊室</div>
+  </div>
+
+  <!-- ========== IDLE MODE ========== -->
+  <!-- MAIN COLUMN -->
+  <div class="main for-idle">
+
+    <!-- BUBBLES -->
+    <div class="card">
+      <div class="card-label">語音頻道</div>
+      <div class="filter-tabs">
+        <div class="filter-tab active">全部</div>
+        <div class="filter-tab">內圈</div>
+        <div class="filter-tab">活躍中</div>
+        <div class="filter-tab">Marvin 互動過</div>
+      </div>
+      <div class="bubble-grid">
+        <div class="bubble speaking" data-stage="inner" data-activity="high" data-marvin="yes" data-pin="yes">
+          <span class="pin">📌</span>
+          <span class="marvin-mark"></span>
+          <div class="avatar">狗</div>
+          <div class="name">狗與露</div>
+        </div>
+        <div class="bubble" data-stage="inner" data-activity="high" data-marvin="yes">
+          <span class="marvin-mark"></span>
+          <div class="avatar">B</div>
+          <div class="name">Bob</div>
+        </div>
+        <div class="bubble" data-stage="regular" data-activity="mid">
+          <div class="avatar">A</div>
+          <div class="name">Alice</div>
+        </div>
+        <div class="bubble" data-stage="regular" data-activity="mid">
+          <div class="avatar">T</div>
+          <div class="name">Tom</div>
+        </div>
+        <div class="bubble" data-stage="stranger" data-activity="low">
+          <div class="avatar">N</div>
+          <div class="name">Nick</div>
+        </div>
+        <div class="bubble" data-stage="stranger" data-activity="low">
+          <div class="avatar">L</div>
+          <div class="name">Lily</div>
+        </div>
+      </div>
+      <div class="show-more">顯示其他 3 人（5 分鐘以上未發言）</div>
+    </div>
+
+    <!-- MARVIN UTTERANCE + FEEDBACK -->
+    <div class="utterance-card">
+      <div class="countdown">3</div>
+      <div class="utterance-meta">
+        <span>對</span> <span class="target">@狗與露</span> <span>· 剛說</span>
+      </div>
+      <div class="utterance-text">「你又輸了喔，意外嗎」</div>
+      <div class="feedback-row">
+        <button class="feedback-btn">
+          <span class="feedback-emoji">🤐</span> 太吵
+        </button>
+        <button class="feedback-btn">
+          <span class="feedback-emoji">🌶️</span> 太刺
+        </button>
+        <button class="feedback-btn">
+          <span class="feedback-emoji">😄</span> 太嗨
+        </button>
+        <button class="feedback-btn ok">✓</button>
+      </div>
+    </div>
+
+    <!-- ATMOSPHERE QUICK CONTROLS -->
+    <div class="card">
+      <div class="card-label">氛圍快速控制</div>
+      <div class="atmos-grid">
+        <button class="atmos-btn">
+          <span class="icon">🤫</span>
+          <div class="label">安靜 5 分鐘<div class="sub">只在被點名時開口</div></div>
+        </button>
+        <button class="atmos-btn">
+          <span class="icon">🎯</span>
+          <div class="label">嚴肅模式<div class="sub">關掉玩笑諷刺</div></div>
+        </button>
+        <button class="atmos-btn">
+          <span class="icon">💤</span>
+          <div class="label">完全閉嘴<div class="sub">直到重新打開</div></div>
+        </button>
+        <button class="atmos-btn">
+          <span class="icon">🔄</span>
+          <div class="label">恢復預設<div class="sub">取消所有抑制</div></div>
+        </button>
+      </div>
+    </div>
+
+    <!-- VOICE BUTTON -->
+    <button class="voice-button">
+      <span class="mic">🎤</span> 按住說話
+    </button>
+
+  </div>
+
+  <!-- SIDE PANEL (USER DETAIL) -->
+  <div class="side-panel for-idle">
+    <div class="panel-header">
+      <div class="panel-avatar">狗</div>
+      <div>
+        <div class="panel-name">狗與露</div>
+        <div class="panel-meta"><span class="stage">內圈</span> · BIAS +6</div>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-section-title">Marvin 的印象</div>
+      <div class="impression">
+        半夜兩點還在玩的常客。嘴硬心軟，輸了會反覆要求重來，贏了會裝沒事。對音樂品味挑剔。
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-section-title">❤️ 喜歡 <span style="color:var(--muted2);font-weight:400;text-transform:none;letter-spacing:0">— 拖出移除</span></div>
+      <div class="tag-row">
+        <span class="tag"><span class="cat">music</span>lo-fi</span>
+        <span class="tag"><span class="cat">game</span>LoL</span>
+        <span class="tag"><span class="cat">food</span>燒肉</span>
+        <span class="tag uncertain"><span class="cat">music</span>citypop</span>
+      </div>
+      <div class="hint">虛線 = 標記疑問，Marvin 下次會主動確認</div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-section-title">❌ 不喜歡</div>
+      <div class="tag-row">
+        <span class="tag">被打斷</span>
+        <span class="tag">早起話題</span>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-section-title">💬 最近記憶 <span style="color:var(--muted2);font-weight:400;text-transform:none;letter-spacing:0">— 雙擊標疑</span></div>
+      <div class="memory-list">
+        <div class="memory-item">
+          <span>「說過想學鋼琴」</span>
+          <span class="date">3天前</span>
+        </div>
+        <div class="memory-item uncertain">
+          <span>「上週生日」</span>
+          <span class="date">5天前</span>
+        </div>
+        <div class="memory-item">
+          <span>「養了一隻黑貓叫露露」</span>
+          <span class="date">2週前</span>
+        </div>
+        <div class="memory-item">
+          <span>「討厭被叫全名」</span>
+          <span class="date">1月前</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== MUSIC MODE ========== -->
+  <div class="main for-music">
+
+    <!-- Compact bubble strip -->
+    <div class="card">
+      <div class="card-label">語音頻道 · 4 人在線</div>
+      <div class="bubble-grid">
+        <div class="bubble" data-stage="inner" data-activity="high" data-marvin="yes">
+          <span class="marvin-mark"></span>
+          <div class="avatar">狗</div>
+          <div class="name">狗與露</div>
+        </div>
+        <div class="bubble speaking" data-stage="inner" data-activity="high">
+          <div class="avatar">B</div>
+          <div class="name">Bob</div>
+        </div>
+        <div class="bubble" data-stage="regular" data-activity="mid">
+          <div class="avatar">A</div>
+          <div class="name">Alice</div>
+        </div>
+        <div class="bubble" data-stage="regular" data-activity="mid">
+          <div class="avatar">T</div>
+          <div class="name">Tom</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Now playing -->
+    <div class="music-card">
+      <div class="music-now">
+        <div class="waveform">
+          <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+          <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+        </div>
+        <div class="music-info">
+          <div class="music-title">Midnight in Taipei</div>
+          <div class="music-sub">Lo-fi · for <span class="target">@狗與露</span> · Suno</div>
+          <div class="progress"><div class="fill"></div></div>
+          <div class="time-row">
+            <span>1:23</span>
+            <span>3:42</span>
+          </div>
+        </div>
+      </div>
+      <div class="player-controls">
+        <button class="player-btn">⏮</button>
+        <button class="player-btn primary">⏸</button>
+        <button class="player-btn">⏭</button>
+        <button class="player-btn">🔁</button>
+        <button class="player-btn">🔊</button>
+      </div>
+    </div>
+
+    <!-- Live reactions -->
+    <div class="reactions-card">
+      <div class="card-label">即時反應</div>
+      <div class="reaction-row">
+        <span class="reaction-icon">👍</span>
+        <span class="reaction-user">Bob</span>
+        <span class="reaction-text">「這首對味」</span>
+      </div>
+      <div class="reaction-row">
+        <span class="reaction-icon">🎵</span>
+        <span class="reaction-user">狗與露</span>
+        <span class="reaction-text">跟著哼了 14 秒</span>
+      </div>
+      <div class="reaction-row">
+        <span class="reaction-icon">💤</span>
+        <span class="reaction-user">Alice</span>
+        <span class="reaction-text">沒有反應</span>
+      </div>
+      <div class="reaction-row">
+        <span class="reaction-icon">⏭️</span>
+        <span class="reaction-user">Tom</span>
+        <span class="reaction-text">上一首被他跳過</span>
+      </div>
+    </div>
+
+    <!-- Quick music actions -->
+    <div class="card">
+      <div class="card-label">快速音樂指令</div>
+      <div class="music-quick">
+        <button class="music-quick-btn"><span class="em">🌙</span>lo-fi 模式</button>
+        <button class="music-quick-btn"><span class="em">🎷</span>jazz 模式</button>
+        <button class="music-quick-btn"><span class="em">🏙️</span>citypop</button>
+        <button class="music-quick-btn"><span class="em">🎵</span>生成新歌</button>
+        <button class="music-quick-btn"><span class="em">🎭</span>給點驚喜</button>
+        <button class="music-quick-btn"><span class="em">⏹️</span>停止音樂</button>
+      </div>
+    </div>
+
+    <button class="voice-button">
+      <span class="mic">🎤</span> 按住說話
+    </button>
+  </div>
+
+  <!-- Music mode side panel: DJ Marvin pushing personalized tracks -->
+  <div class="side-panel for-music">
+    <div class="dj-card">
+      <div class="dj-header">
+        <div class="dj-badge">🎧</div>
+        <div>
+          <div class="dj-title">DJ Marvin</div>
+          <div class="dj-subtitle">為你的房間挑歌</div>
+        </div>
+      </div>
+
+      <!-- target tabs -->
+      <div class="dj-target-tabs">
+        <div class="dj-target active">房間全體</div>
+        <div class="dj-target">狗與露</div>
+        <div class="dj-target">Bob</div>
+        <div class="dj-target">Alice</div>
+        <div class="dj-target">Tom</div>
+      </div>
+
+      <!-- DJ picks for selected target -->
+      <div class="dj-pick">
+        <div class="play">▶</div>
+        <div class="dj-pick-body">
+          <div class="dj-pick-title">Slow Train Past Songshan</div>
+          <div class="dj-pick-why">
+            <span class="hl">為狗與露</span>挑的——他上週半夜常聽這風格，剛剛哼了 Midnight 那首，這條延續得上
+          </div>
+          <div class="dj-pick-meta">Lo-fi · 3:18 · Suno</div>
+        </div>
+      </div>
+
+      <div class="dj-pick">
+        <div class="play">▶</div>
+        <div class="dj-pick-body">
+          <div class="dj-pick-title">Convenience Store, 2:47</div>
+          <div class="dj-pick-why">
+            房間整體偏好 lo-fi，<span class="hl">這首加一點 citypop 元素</span>，怕大家無聊
+          </div>
+          <div class="dj-pick-meta">Lo-fi × Citypop · 2:55</div>
+        </div>
+      </div>
+
+      <div class="dj-pick">
+        <div class="play">▶</div>
+        <div class="dj-pick-body">
+          <div class="dj-pick-title">Heated Argument (instrumental)</div>
+          <div class="dj-pick-why">
+            <span class="hl">Bob 上次問過爵士</span>——這條算是進階版，看他敢不敢挑
+          </div>
+          <div class="dj-pick-meta">Jazz · 4:02</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Per-user history (shown when tab selected) -->
+    <div class="dj-card" style="margin-top:14px">
+      <div class="card-label">狗與露 · 點歌歷史</div>
+
+      <div class="taste-bars">
+        <div class="taste-row">
+          <span class="taste-label">lo-fi</span>
+          <div class="taste-bar"><div class="fill" style="width:72%"></div></div>
+          <span class="taste-pct">72%</span>
+        </div>
+        <div class="taste-row">
+          <span class="taste-label">citypop</span>
+          <div class="taste-bar"><div class="fill" style="width:18%"></div></div>
+          <span class="taste-pct">18%</span>
+        </div>
+        <div class="taste-row">
+          <span class="taste-label">jazz</span>
+          <div class="taste-bar"><div class="fill" style="width:6%"></div></div>
+          <span class="taste-pct">6%</span>
+        </div>
+        <div class="taste-row">
+          <span class="taste-label">其他</span>
+          <div class="taste-bar"><div class="fill" style="width:4%"></div></div>
+          <span class="taste-pct">4%</span>
+        </div>
+      </div>
+
+      <div style="margin-top:14px">
+        <div class="history-row">
+          <span class="h-time">今晚</span>
+          <span class="h-title">Midnight in Taipei</span>
+          <span class="h-tag love">哼了</span>
+        </div>
+        <div class="history-row">
+          <span class="h-time">昨晚</span>
+          <span class="h-title">Drive Home Slow</span>
+          <span class="h-tag">點播</span>
+        </div>
+        <div class="history-row">
+          <span class="h-time">昨晚</span>
+          <span class="h-title">Subway Window</span>
+          <span class="h-tag love">重播 2 次</span>
+        </div>
+        <div class="history-row">
+          <span class="h-time">3 天前</span>
+          <span class="h-title">Loud K-pop Megamix</span>
+          <span class="h-tag skip">跳過</span>
+        </div>
+        <div class="history-row">
+          <span class="h-time">3 天前</span>
+          <span class="h-title">Late Bus Home</span>
+          <span class="h-tag">點播</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== GAME MODE ========== -->
+  <div class="main for-game">
+
+    <!-- Compact bubble strip -->
+    <div class="card">
+      <div class="card-label">語音頻道 · 4 人在線</div>
+      <div class="bubble-grid">
+        <div class="bubble" data-stage="inner" data-activity="high">
+          <div class="avatar">狗</div>
+          <div class="name">狗與露</div>
+        </div>
+        <div class="bubble speaking" data-stage="inner" data-activity="high">
+          <div class="avatar">B</div>
+          <div class="name">Bob</div>
+        </div>
+        <div class="bubble" data-stage="regular" data-activity="mid">
+          <div class="avatar">A</div>
+          <div class="name">Alice</div>
+        </div>
+        <div class="bubble" data-stage="regular" data-activity="mid">
+          <div class="avatar">T</div>
+          <div class="name">Tom</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Game state -->
+    <div class="game-card">
+      <div class="game-header">
+        <div class="game-title">🕵️ 謊言偵探 <span class="game-round">· 第 2 輪 / 共 5</span></div>
+        <div class="game-timer">⏱ 0:25</div>
+      </div>
+
+      <div class="game-phase">
+        <div class="game-phase-label">目前階段</div>
+        <div class="game-phase-text">Bob 正在輸入三句話（兩真一假）…</div>
+      </div>
+
+      <div class="scoreboard">
+        <div class="score-row leader">
+          <div class="player">🥇 狗與露</div>
+          <div class="pts">4</div>
+        </div>
+        <div class="score-row">
+          <div class="player">Marvin <span class="badge">AI</span></div>
+          <div class="pts">3</div>
+        </div>
+        <div class="score-row">
+          <div class="player">Bob</div>
+          <div class="pts">2</div>
+        </div>
+        <div class="score-row">
+          <div class="player">Alice</div>
+          <div class="pts">1</div>
+        </div>
+      </div>
+
+      <div class="events-log">
+        <div class="event fresh"><span class="em">⏱️</span>輪到 Bob 宣告</div>
+        <div class="event"><span class="em">🎯</span>狗與露 投對了 (+2)</div>
+        <div class="event"><span class="em">🤖</span>Marvin 猜 B：「Alice 的第二句太刻意」</div>
+        <div class="event"><span class="em">📣</span>Alice 完成宣告</div>
+      </div>
+
+      <div class="game-controls">
+        <button class="game-ctrl-btn">⏭ 跳過此輪</button>
+        <button class="game-ctrl-btn">🔄 重新開始</button>
+        <button class="game-ctrl-btn danger">⏹ 結束遊戲</button>
+      </div>
+    </div>
+
+    <button class="voice-button">
+      <span class="mic">🎤</span> 按住說話
+    </button>
+  </div>
+
+  <!-- Game mode side panel: simplified — atmosphere + alert only -->
+  <div class="side-panel for-game">
+
+    <!-- Atmosphere gauge -->
+    <div class="atmos-card">
+      <div class="card-label">房間氣氛</div>
+      <div class="atmos-status">緊湊但氣氛還行</div>
+      <div class="gauge">
+        <div class="gauge-pointer" style="left:55%"></div>
+      </div>
+      <div class="gauge-labels">
+        <span>輕鬆</span>
+        <span>專注</span>
+        <span>緊繃</span>
+      </div>
+      <div class="mode-toggle">
+        <div class="mode-toggle-btn active">參與中</div>
+        <div class="mode-toggle-btn">旁觀模式</div>
+      </div>
+    </div>
+
+    <!-- Don't be dumb radar -->
+    <div class="alert-card warn" style="margin-top:12px">
+      <div class="card-label">⚠️ 防呆雷達</div>
+      <div class="alert-msg">
+        Marvin 打算公開吐槽「Bob 又輸了」——但他這輪還沒輸，可能會看起來在亂猜。
+      </div>
+      <div class="alert-actions">
+        <button class="alert-btn primary">✋ 攔下</button>
+        <button class="alert-btn">👍 讓他說</button>
+      </div>
+    </div>
+
+    <!-- After alert is handled, default state shown below -->
+    <div class="alert-card" style="margin-top:12px">
+      <div class="card-label">📊 比分</div>
+      <div class="scoreboard" style="margin:8px 0 0">
+        <div class="score-row leader">
+          <div class="player">🥇 狗與露</div>
+          <div class="pts">4</div>
+        </div>
+        <div class="score-row">
+          <div class="player">Marvin <span class="badge">AI</span></div>
+          <div class="pts">3</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hint" style="margin-top:12px; text-align:center">
+      參與中 — Marvin 自己玩，只有可能耍笨時才打擾你
+    </div>
+  </div>
+
+  <div class="note">
+    UX Mockup · Voice-bot-companion · 點上方切換待命 / 音樂中 / 遊戲中
+  </div>
+
+</div>
+
+<!-- FLOATING INPUT (desktop only) -->
+<div class="float-input collapsed" id="floatInput">
+  <div class="toggle" onclick="toggleInput()">⌨</div>
+  <input type="text" placeholder="進階指令、skill 編輯、複雜代言…">
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+
+    // ===== Mode tab switching (FIRST priority) =====
+    const appEl = document.querySelector('.app');
+    document.querySelectorAll('.mode-tab').forEach(tab => {
+      tab.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        appEl.setAttribute('data-mode', tab.dataset.mode);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    });
+
+    // ===== Float input toggle =====
+    window.toggleInput = function() {
+      const el = document.getElementById('floatInput');
+      el.classList.toggle('collapsed');
+      el.classList.toggle('expanded');
+      if (el.classList.contains('expanded')) {
+        el.querySelector('input').focus();
+      }
+    };
+
+    // ===== Bubble click → swap detail (only if panel exists) =====
+    document.querySelectorAll('.bubble').forEach(b => {
+      b.addEventListener('click', () => {
+        document.querySelectorAll('.bubble').forEach(x => x.classList.remove('speaking'));
+        b.classList.add('speaking');
+        const nameEl = b.querySelector('.name');
+        if (!nameEl) return;
+        const name = nameEl.textContent;
+        const panelName = document.querySelector('.side-panel.for-idle .panel-name');
+        const panelAvatar = document.querySelector('.side-panel.for-idle .panel-avatar');
+        if (panelName) panelName.textContent = name;
+        if (panelAvatar) panelAvatar.textContent = name.charAt(0);
+      });
+    });
+
+    // ===== Feedback buttons =====
+    document.querySelectorAll('.feedback-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        btn.style.background = 'var(--amber-glow)';
+        btn.style.borderColor = 'var(--amber)';
+        btn.style.color = 'var(--amber)';
+      });
+    });
+
+    // ===== Atmos quick toggle =====
+    document.querySelectorAll('.atmos-btn').forEach(btn => {
+      btn.addEventListener('click', () => btn.classList.toggle('active'));
+    });
+
+    // ===== DJ target tab switching =====
+    document.querySelectorAll('.dj-target').forEach(tab => {
+      tab.addEventListener('click', () => {
+        const parent = tab.parentElement;
+        parent.querySelectorAll('.dj-target').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+      });
+    });
+
+    // ===== Generic button flash =====
+    document.querySelectorAll('.player-btn, .music-quick-btn, .game-ctrl-btn, .alert-btn, .dj-pick, .mind-act-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const orig = btn.style.background;
+        btn.style.transition = 'all 0.15s';
+        btn.style.background = 'var(--amber-glow)';
+        btn.style.borderColor = 'var(--amber)';
+        setTimeout(() => {
+          btn.style.background = orig;
+          btn.style.borderColor = '';
+        }, 300);
+      });
+    });
+
+    // ===== Mode toggle (參與中 / 旁觀模式) =====
+    document.querySelectorAll('.mode-toggle-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const parent = btn.parentElement;
+        parent.querySelectorAll('.mode-toggle-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
+
+  });
+</script>
+
+</body>
+</html>

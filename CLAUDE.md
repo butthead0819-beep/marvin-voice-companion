@@ -7,14 +7,38 @@
 
 ## 專案定位
 
-**Voice-bot-companion** 是 Marvin Discord Voice Bot 的輔助/擴充模組集合，用途包括：
-- 透過 MarmoServer webhook（`localhost:8765`）向 Marvin 注入語音指令或文字
-- 讀取 `marvin.db`（SQLite）分析社群記憶與行為數據
-- 實作獨立工具（管理 dashboard、排程任務、外部 API 橋接）供 Marvin 呼叫
-- Landing page 或 companion web UI
+**Voice-bot-companion** 是 Marvin Discord Voice Bot 的控制 / 可視層，主要為作者本人使用。用途包括：
+- 即時顯示 Marvin 的 STT、意圖判斷、TTS 佇列狀態（透過 WebSocket bridge）
+- 校正氣氛讀判（🤐/🌶️/😄 三種事後回饋）
+- Bubble 記憶編輯器 — 個人 profile + vector store 記憶可視化、可拖曳移除、可標疑
+- 音樂 DJ 推薦面板（讀取 `music_memory.py`）
+- 遊戲氛圍輔助（防呆雷達）
+- 透過 Tailscale 從 iOS Safari 遠端控制
 
-主專案路徑：`../Discord-voice-bot/`  
-MarmoServer webhook：`http://localhost:8765`（`MARMO_TOKEN` 驗證）
+主專案路徑：`../Discord-voice-bot/`
+
+---
+
+## 與主專案的通訊架構
+
+**架構選擇：WebSocket 雙向橋接**（2026-05-14 /plan-eng-review D1）
+
+```
+iOS Safari / Mac 瀏覽器
+    ↕ WebSocket (透過 Tailscale)
+companion-server (FastAPI, this repo)
+    ↕ WebSocket (localhost)
+companion_bridge.py (in marvin_voice_core/)
+    ↕ direct import
+Marvin (Discord-voice-bot process)
+```
+
+**不直接 import 主專案模組** — companion-server 與 Marvin 是兩個分離的 process，
+透過 WebSocket 交換事件。companion_bridge.py 在 Marvin 端負責橋接，是少數會 import
+主專案模組（AtmosphereTracker, VectorStore, MusicMemory）的位置。
+
+**MarmoServer 仍然存在**，作為 NemoClaw → Marvin 的單向 webhook（`localhost:8765`）。
+companion 不使用 MarmoServer — 它走自己的 WebSocket channel。
 
 ---
 
@@ -64,21 +88,39 @@ Companion module → External API → 結果注入 Marvin
 
 ## 與主專案的介接規範
 
-### MarmoServer webhook
+### WebSocket bridge protocol
 
-```python
-POST http://localhost:8765
-Headers: Authorization: Bearer <MARMO_TOKEN>
-Body: {"text": "要說的話", "voice": "en-US-GuyNeural"}
-```
+雙向事件流，JSON message：`{"type": "<event_name>", "payload": {...}, "ts": <unix_seconds>}`
 
-成功回傳 `{"status": "queued"}`；失敗時 companion 必須記 log，不得 raise 讓上層崩潰。
+**Marvin → companion（主動推送）：**
+- `stt_chunk` — STT 完成：`{speaker, text, engine}`
+- `intent_routed` — 意圖判斷：`{intent, query, target_user}`
+- `tts_started` / `tts_done` — TTS 狀態：`{text, voice, target}`
+- `atmosphere_snapshot` — 週期性氣氛：`AtmosphereSnapshot` 序列化
+- `member_joined` / `member_left` — 頻道成員變動
+- `music_started` / `music_ended` / `music_reaction` — 音樂事件
+- `game_phase_changed` — 遊戲狀態機
 
-### marvin.db 讀取
+**companion → Marvin（請求 / 控制）：**
+- `atmosphere_feedback` — `{snapshot_ts, label: "too_loud"|"too_sharp"|"too_jolly"}`
+- `tts_injection` — `{text, voice, target}` 代言
+- `mode_change` — `{mode: "silent_5min"|"serious"|"shutup"|"reset"}`
+- `memory_list_request` — `{speaker, guild_id, limit}` → 回 `memory_list_response`
+- `memory_delete` / `memory_mark_uncertain` — `{doc_id}`
+- `music_play_request` / `music_skip` — `{song_id_or_query, target}`
+- `music_recommendations_request` — `{target_username?}`（None = 房間級）→ 回 `music_recommendations_response`：`{target, recommendations, user_taste, history}`
+- `game_force_skip_round` — `{game}`（如 `"detective"`）：跳過當前回合
+- `game_end` — `{game}`：強制結束目前遊戲
 
-- 路徑由環境變數 `MARVIN_DB_PATH` 指定，預設 `../Discord-voice-bot/marvin.db`
-- **只讀**，不得在 companion 端寫入 marvin.db
-- 讀取前確認檔案存在，不存在時 graceful fallback（回傳空資料，不 raise）
+失敗策略：任何 WebSocket 連線中斷，companion-server 進入 disconnected 狀態並每 5 秒
+重連；UI 顯示連線狀態。Marvin 端 bridge 同樣自動重連。
+
+### 記憶資料存取
+
+**所有讀寫透過 bridge，不直接讀檔。** companion 不打開 `marvin.db` 或 `.chroma_db/`。
+- 個人 profile：`memory_list_request` 取回 `suki_memory` 結構化欄位
+- Vector chunks：`memory_list_request` 包含 vector store 的 `get_all` 結果
+- 修正：`memory_delete` / `memory_mark_uncertain` 觸發 `VectorStore.delete/update`
 
 ---
 
