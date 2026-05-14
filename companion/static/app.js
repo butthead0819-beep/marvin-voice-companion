@@ -690,7 +690,7 @@
       stage: payload.stage || 'stranger',
       activity: payload.activity || 'mid',
       marvin: payload.marvin === true || payload.marvin === 'yes',
-      avatar: payload.avatar || null,
+      avatar: payload.avatar || payload.avatar_url || null,
     });
     renderBubbles();
   }
@@ -717,7 +717,7 @@
         stage: m.stage || 'stranger',
         activity: m.activity || 'mid',
         marvin: m.marvin === true || m.marvin === 'yes',
-        avatar: m.avatar || null,
+        avatar: m.avatar || m.avatar_url || null,
       });
     });
     renderBubbles();
@@ -775,9 +775,12 @@
       if (m.marvin) node.dataset.marvin = 'yes';
       if (key === state.selectedSpeaker) node.classList.add('selected');
       const initial = (m.name || key || '?').slice(0, 1);
+      const avatarInner = m.avatar
+        ? `<img src="${escapeHtml(m.avatar)}" alt="${escapeHtml(initial)}">`
+        : escapeHtml(initial);
       node.innerHTML = `
         <span class="marvin-mark"></span>
-        <div class="avatar">${escapeHtml(initial)}</div>
+        <div class="avatar">${avatarInner}</div>
         <div class="name">${escapeHtml(m.name || key)}</div>
       `;
       node.addEventListener('click', () => onBubbleClick(key));
@@ -798,7 +801,12 @@
     const m = state.members.get(key);
     if (m) {
       els.panelName().textContent = m.name || key;
-      els.panelAvatar().textContent = (m.name || key).slice(0, 1);
+      const pa = els.panelAvatar();
+      if (m.avatar) {
+        pa.innerHTML = `<img src="${escapeHtml(m.avatar)}" alt="${escapeHtml((m.name || key).slice(0, 1))}">`;
+      } else {
+        pa.textContent = (m.name || key).slice(0, 1);
+      }
       els.panelStage().textContent = stageLabel(m.stage);
     }
   }
@@ -1161,10 +1169,10 @@
       if (opts?.draggable) {
         node.draggable = true;
         node.addEventListener('dragend', (e) => {
-          // Drag-out delete: any drag end fires memory_delete
-          if (!node.dataset.docId) return;
-          send('memory_delete', { doc_id: node.dataset.docId });
           node.remove();
+          if (node.dataset.docId) {
+            send('memory_delete', { doc_id: node.dataset.docId });
+          }
         });
         node.addEventListener('dblclick', () => {
           if (!node.dataset.docId) return;

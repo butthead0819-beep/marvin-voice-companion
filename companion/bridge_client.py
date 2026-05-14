@@ -37,15 +37,18 @@ class BridgeClient:
 
         - COMPANION_BRIDGE_URL：bridge WS URL（預設 ws://localhost:8766/companion-ws）
         - COMPANION_BRIDGE_MOCK：1/true/yes/on 走 mock，其餘預設 real
+        - MARMO_TOKEN：沿用主 bot 的認證 token，透過 X-Marmo-Token header 送出
         """
         url = os.environ.get("COMPANION_BRIDGE_URL", "ws://localhost:8766/companion-ws")
         mock_raw = os.environ.get("COMPANION_BRIDGE_MOCK", "").strip().lower()
         mock = mock_raw in _TRUE_VALUES
-        return cls(url=url, mock_mode=mock)
+        token = os.environ.get("MARMO_TOKEN", "")
+        return cls(url=url, mock_mode=mock, token=token)
 
-    def __init__(self, url: str = "ws://localhost:8766/companion-ws", mock_mode: bool = False) -> None:
+    def __init__(self, url: str = "ws://localhost:8766/companion-ws", mock_mode: bool = False, token: str = "") -> None:
         self.url = url
         self.mock_mode = mock_mode
+        self._token = token
         self._handlers: List[EventHandler] = []
         self._connected = False
         self._task: Optional[asyncio.Task] = None
@@ -135,7 +138,8 @@ class BridgeClient:
 
         while not self._stop:
             try:
-                async with websockets.connect(self.url) as ws:
+                headers = {"X-Marmo-Token": self._token} if self._token else {}
+                async with websockets.connect(self.url, additional_headers=headers) as ws:
                     self._ws = ws
                     self._connected = True
                     logger.info("[Companion] bridge connected: %s", self.url)

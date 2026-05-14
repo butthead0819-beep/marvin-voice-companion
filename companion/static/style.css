@@ -29,7 +29,7 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: 'Instrument Sans', system-ui, sans-serif;
-  font-size: 14px;
+  font-size: 18px;
   line-height: 1.5;
   min-height: 100vh;
   padding: 24px;
@@ -61,7 +61,7 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
+  font-size: 17px;
   font-weight: 500;
   letter-spacing: 0.06em;
   color: var(--muted);
@@ -86,7 +86,7 @@ body {
   font-style: italic;
   font-weight: 300;
   color: var(--amber);
-  font-size: 15px;
+  font-size: 21px;
 }
 
 /* ============ MAIN COLUMN ============ */
@@ -100,7 +100,7 @@ body {
 }
 
 .card-label {
-  font-size: 11px;
+  font-size: 15px;
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -134,25 +134,32 @@ body {
   border-color: var(--muted2);
 }
 .bubble .avatar {
-  width: 36px;
-  height: 36px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: 'Fraunces', serif;
   font-weight: 400;
-  font-size: 16px;
+  font-size: 22px;
   color: var(--bg);
   background: var(--stage-stranger);
+  overflow: hidden;
+}
+.bubble .avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
 }
 .bubble .name {
-  margin-top: 4px;
-  font-size: 10px;
+  margin-top: 5px;
+  font-size: 14px;
   font-weight: 500;
   color: var(--muted);
   white-space: nowrap;
-  max-width: 70px;
+  max-width: 90px;
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -197,7 +204,7 @@ body {
 
 .empty-hint {
   color: var(--muted2);
-  font-size: 12px;
+  font-size: 17px;
   letter-spacing: 0.05em;
   text-align: center;
   padding: 20px 0;
@@ -218,7 +225,7 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 11px;
+  font-size: 15px;
   color: var(--muted);
   margin-bottom: 8px;
 }
@@ -229,7 +236,7 @@ body {
 .utterance-text {
   font-family: 'Fraunces', serif;
   font-weight: 300;
-  font-size: 20px;
+  font-size: 28px;
   line-height: 1.4;
   color: var(--text);
   margin-bottom: 14px;
@@ -251,7 +258,7 @@ body {
   padding: 10px 8px;
   border-radius: 8px;
   font-family: inherit;
-  font-size: 13px;
+  font-size: 18px;
   font-weight: 500;
   cursor: pointer;
   display: flex;
@@ -266,7 +273,7 @@ body {
   border-color: var(--amber);
   color: var(--amber);
 }
-.feedback-emoji { font-size: 14px; }
+.feedback-emoji { font-size: 20px; }
 
 .countdown {
   position: absolute;
@@ -280,7 +287,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 10px;
+  font-size: 14px;
   color: var(--amber);
   font-weight: 600;
 }
@@ -299,7 +306,7 @@ body {
   padding: 14px 12px;
   border-radius: 10px;
   font-family: inherit;
-  font-size: 13px;
+  font-size: 18px;
   font-weight: 500;
   cursor: pointer;
   display: flex;
@@ -314,10 +321,10 @@ body {
   border-color: var(--amber);
   color: var(--amber);
 }
-.atmos-btn .icon { font-size: 16px; }
+.atmos-btn .icon { font-size: 22px; }
 .atmos-btn .label { flex: 1; text-align: left; }
 .atmos-btn .sub {
-  font-size: 10px;
+  font-size: 14px;
   color: var(--muted);
   font-weight: 400;
 }
@@ -333,7 +340,7 @@ body {
   font-family: 'Fraunces', serif;
   font-style: italic;
   font-weight: 400;
-  font-size: 18px;
+  font-size: 25px;
   width: 100%;
   cursor: pointer;
   display: flex;
@@ -352,7 +359,7 @@ body {
   background: var(--red);
   color: var(--text);
 }
-.voice-button .mic { font-size: 22px; }
+.voice-button .mic { font-size: 31px; }
 
 /* ============ SIDE PANEL ============ */
 .side-panel {
@@ -372,8 +379,8 @@ body {
   margin-bottom: 14px;
 }
 .panel-avatar {
-  width: 48px;
-  height: 48px;
+  width: 68px;
+  height: 68px;
   border-radius: 50%;
   background: var(--stage-stranger);
   color: var(--bg);
@@ -381,17 +388,25 @@ body {
   align-items: center;
   justify-content: center;
   font-family: 'Fraunces', serif;
-  font-size: 22px;
+  font-size: 31px;
   font-weight: 400;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.panel-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
 }
 .panel-name {
   font-family: 'Fraunces', serif;
-  font-size: 20px;
+  font-size: 28px;
   font-weight: 400;
   color: var(--text);
 }
 .panel-meta {
-  font-size: 11px;
+  font-size: 15px;
   color: var(--muted);
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -401,7 +416,7 @@ body {
 
 .panel-section { margin-bottom: 16px; }
 .panel-section-title {
-  font-size: 10px;
+  font-size: 14px;
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -416,7 +431,7 @@ body {
   font-family: 'Fraunces', serif;
   font-style: italic;
   font-weight: 300;
-  font-size: 15px;
+  font-size: 21px;
   line-height: 1.5;
   color: var(--text);
   padding: 12px;
@@ -435,7 +450,7 @@ body {
   border: 1px solid var(--border);
   padding: 6px 10px;
   border-radius: 100px;
-  font-size: 12px;
+  font-size: 17px;
   color: var(--text);
   cursor: grab;
   transition: all 0.15s;
@@ -454,7 +469,7 @@ body {
 }
 .tag .cat {
   color: var(--muted);
-  font-size: 10px;
+  font-size: 14px;
   margin-right: 4px;
 }
 
@@ -468,7 +483,7 @@ body {
   border: 1px solid var(--border);
   padding: 8px 12px;
   border-radius: 8px;
-  font-size: 12.5px;
+  font-size: 18px;
   color: var(--text);
   cursor: pointer;
   transition: all 0.15s;
@@ -485,14 +500,14 @@ body {
   color: var(--yellow);
 }
 .memory-item .date {
-  font-size: 10px;
+  font-size: 14px;
   color: var(--muted);
   letter-spacing: 0.05em;
   flex-shrink: 0;
 }
 
 .hint {
-  font-size: 10.5px;
+  font-size: 15px;
   color: var(--muted2);
   margin-top: 6px;
   line-height: 1.4;
@@ -523,7 +538,7 @@ body {
   justify-content: center;
   cursor: pointer;
   color: var(--muted);
-  font-size: 16px;
+  font-size: 22px;
 }
 .float-input .toggle:hover { color: var(--amber); }
 .float-input input {
@@ -532,7 +547,7 @@ body {
   border: none;
   color: var(--text);
   font-family: inherit;
-  font-size: 13px;
+  font-size: 18px;
   outline: none;
   padding-right: 16px;
   display: none;
@@ -549,7 +564,7 @@ body {
   padding: 8px 16px;
   background: var(--red);
   color: var(--text);
-  font-size: 12px;
+  font-size: 17px;
   text-align: center;
   letter-spacing: 0.08em;
   z-index: 200;
@@ -567,6 +582,43 @@ body {
   .side-panel { position: static; }
   .float-input { display: none; }
   .atmos-grid { grid-template-columns: 1fr; }
+}
+
+/* iOS 橫向：兩欄並排，左欄操控、右欄資訊面板 */
+@media (orientation: landscape) and (max-height: 500px) {
+  body { padding: 6px 10px; }
+  .app {
+    grid-template-columns: 42% 1fr;
+    grid-template-rows: auto 1fr;
+    gap: 8px;
+    height: calc(100dvh - 12px);
+    overflow: hidden;
+  }
+  .status-bar {
+    grid-column: 1 / -1;
+    padding: 6px 14px;
+  }
+  .main {
+    overflow-y: auto;
+    max-height: calc(100dvh - 70px);
+    gap: 8px;
+  }
+  .side-panel {
+    position: static;
+    overflow-y: auto;
+    max-height: calc(100dvh - 70px);
+    padding: 12px;
+  }
+  .bubble { width: 66px; }
+  .bubble .avatar { width: 44px; height: 44px; font-size: 18px; }
+  .bubble .name { font-size: 12px; max-width: 80px; }
+  .utterance-card { padding: 10px 14px; }
+  .utterance-text { font-size: 18px; }
+  .card { padding: 10px 14px; }
+  .atmos-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
+  .atmos-btn { padding: 8px 10px; }
+  .voice-button { padding: 10px 20px; font-size: 18px; }
+  .float-input { display: none; }
 }
 
 /* ============ LANE E: MUSIC MODE ============
@@ -627,7 +679,7 @@ body {
   font-family: 'Fraunces', serif;
   font-style: italic;
   font-weight: 300;
-  font-size: 22px;
+  font-size: 31px;
   line-height: 1.2;
   color: var(--text);
   margin-bottom: 4px;
@@ -636,7 +688,7 @@ body {
   white-space: nowrap;
 }
 .music-sub {
-  font-size: 12px;
+  font-size: 17px;
   color: var(--muted);
 }
 .music-sub .target { color: var(--amber); font-weight: 500; }
@@ -659,7 +711,7 @@ body {
 .time-row {
   display: flex;
   justify-content: space-between;
-  font-size: 11px;
+  font-size: 15px;
   color: var(--muted);
   font-variant-numeric: tabular-nums;
 }
@@ -682,7 +734,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: 20px;
   transition: all 0.15s;
 }
 .player-btn:hover { border-color: var(--amber); color: var(--amber); }
@@ -692,7 +744,7 @@ body {
   background: var(--amber);
   color: var(--bg);
   border-color: var(--amber);
-  font-size: 18px;
+  font-size: 25px;
 }
 .player-btn.primary:hover { background: #FFB938; }
 
@@ -707,13 +759,13 @@ body {
   align-items: center;
   gap: 8px;
   padding: 6px 0;
-  font-size: 13px;
+  font-size: 18px;
   border-bottom: 1px dashed var(--border);
 }
 .reaction-row:last-child { border: none; }
-.reaction-icon { font-size: 14px; width: 18px; }
+.reaction-icon { font-size: 20px; width: 25px; }
 .reaction-user { color: var(--text); font-weight: 500; min-width: 70px; }
-.reaction-text { color: var(--muted); font-size: 12px; flex: 1; }
+.reaction-text { color: var(--muted); font-size: 17px; flex: 1; }
 
 .music-quick {
   display: grid;
@@ -728,13 +780,13 @@ body {
   padding: 10px 6px;
   border-radius: 8px;
   font-family: inherit;
-  font-size: 12px;
+  font-size: 17px;
   cursor: pointer;
   text-align: center;
   transition: all 0.15s;
 }
 .music-quick-btn:hover { border-color: var(--amber); color: var(--amber); }
-.music-quick-btn .em { font-size: 16px; display: block; margin-bottom: 2px; }
+.music-quick-btn .em { font-size: 22px; display: block; margin-bottom: 2px; }
 
 /* ============ DJ SIDE PANEL ============ */
 .dj-card {
@@ -760,16 +812,16 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
+  font-size: 25px;
 }
 .dj-title {
   font-family: 'Fraunces', serif;
-  font-size: 17px;
+  font-size: 24px;
   font-weight: 400;
   color: var(--text);
 }
 .dj-subtitle {
-  font-size: 11px;
+  font-size: 15px;
   color: var(--muted);
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -785,7 +837,7 @@ body {
 .dj-target {
   flex-shrink: 0;
   padding: 6px 12px;
-  font-size: 11.5px;
+  font-size: 16px;
   font-weight: 500;
   color: var(--muted);
   background: var(--surface2);
@@ -825,7 +877,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: 20px;
   flex-shrink: 0;
 }
 .dj-pick-body { flex: 1; min-width: 0; }
@@ -833,7 +885,7 @@ body {
   font-family: 'Fraunces', serif;
   font-style: italic;
   font-weight: 300;
-  font-size: 15px;
+  font-size: 21px;
   color: var(--text);
   margin-bottom: 2px;
   overflow: hidden;
@@ -841,13 +893,13 @@ body {
   white-space: nowrap;
 }
 .dj-pick-why {
-  font-size: 11.5px;
+  font-size: 16px;
   color: var(--muted);
   line-height: 1.4;
 }
 .dj-pick-why .hl { color: var(--amber); }
 .dj-pick-meta {
-  font-size: 10px;
+  font-size: 14px;
   color: var(--muted2);
   margin-top: 2px;
   letter-spacing: 0.05em;
@@ -864,7 +916,7 @@ body {
 .history-row:last-child { border: none; }
 .history-row:hover { background: var(--surface2); }
 .history-row .h-time {
-  font-size: 10px;
+  font-size: 14px;
   color: var(--muted2);
   width: 50px;
   flex-shrink: 0;
@@ -872,14 +924,14 @@ body {
 }
 .history-row .h-title {
   flex: 1;
-  font-size: 12.5px;
+  font-size: 18px;
   color: var(--text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .history-row .h-tag {
-  font-size: 10px;
+  font-size: 14px;
   color: var(--amber);
   background: var(--amber-glow);
   padding: 2px 8px;
@@ -900,7 +952,7 @@ body {
   gap: 10px;
 }
 .taste-label {
-  font-size: 12px;
+  font-size: 17px;
   color: var(--text);
   width: 70px;
   flex-shrink: 0;
@@ -918,7 +970,7 @@ body {
   border-radius: 3px;
 }
 .taste-pct {
-  font-size: 11px;
+  font-size: 15px;
   color: var(--muted);
   width: 32px;
   text-align: right;
@@ -953,14 +1005,14 @@ body {
 .game-title {
   font-family: 'Fraunces', serif;
   font-weight: 400;
-  font-size: 20px;
+  font-size: 28px;
   color: var(--text);
   display: flex;
   align-items: center;
   gap: 8px;
 }
 .game-round {
-  font-size: 12px;
+  font-size: 17px;
   color: var(--muted);
   margin-left: 4px;
 }
@@ -970,7 +1022,7 @@ body {
   color: var(--amber);
   padding: 6px 12px;
   border-radius: 100px;
-  font-size: 13px;
+  font-size: 18px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
@@ -982,7 +1034,7 @@ body {
   border-left: 2px solid var(--amber);
 }
 .game-phase-label {
-  font-size: 10px;
+  font-size: 14px;
   color: var(--muted);
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -992,7 +1044,7 @@ body {
   font-family: 'Fraunces', serif;
   font-style: italic;
   font-weight: 300;
-  font-size: 15px;
+  font-size: 21px;
   color: var(--text);
 }
 .scoreboard {
@@ -1008,7 +1060,7 @@ body {
   padding: 8px 12px;
   background: var(--surface2);
   border-radius: 6px;
-  font-size: 13px;
+  font-size: 18px;
 }
 .score-row.leader { background: var(--amber-glow); }
 .score-row .player {
@@ -1019,7 +1071,7 @@ body {
 .score-row .badge {
   background: var(--amber);
   color: var(--bg);
-  font-size: 9px;
+  font-size: 13px;
   font-weight: 600;
   padding: 1px 5px;
   border-radius: 4px;
@@ -1027,7 +1079,7 @@ body {
 }
 .score-row .pts {
   font-family: 'Fraunces', serif;
-  font-size: 16px;
+  font-size: 22px;
   color: var(--amber);
   font-variant-numeric: tabular-nums;
 }
@@ -1035,7 +1087,7 @@ body {
   background: var(--surface2);
   border-radius: 8px;
   padding: 10px 12px;
-  font-size: 12px;
+  font-size: 17px;
   line-height: 1.7;
 }
 .events-log .event {
@@ -1044,7 +1096,7 @@ body {
   align-items: center;
   gap: 6px;
 }
-.events-log .event .em { font-size: 13px; }
+.events-log .event .em { font-size: 18px; }
 .events-log .event.fresh { color: var(--text); }
 .game-controls {
   display: grid;
@@ -1059,7 +1111,7 @@ body {
   padding: 10px 6px;
   border-radius: 8px;
   font-family: inherit;
-  font-size: 12px;
+  font-size: 17px;
   cursor: pointer;
   transition: all 0.15s;
 }
@@ -1077,7 +1129,7 @@ body {
   font-family: 'Fraunces', serif;
   font-style: italic;
   font-weight: 300;
-  font-size: 18px;
+  font-size: 25px;
   color: var(--text);
   margin: 6px 0 10px;
 }
@@ -1103,7 +1155,7 @@ body {
 .gauge-labels {
   display: flex;
   justify-content: space-between;
-  font-size: 10px;
+  font-size: 14px;
   color: var(--muted);
   letter-spacing: 0.06em;
 }
@@ -1118,7 +1170,7 @@ body {
   flex: 1;
   padding: 6px;
   text-align: center;
-  font-size: 11px;
+  font-size: 15px;
   color: var(--muted);
   cursor: pointer;
   border-radius: 100px;
@@ -1146,7 +1198,7 @@ body {
   font-family: 'Fraunces', serif;
   font-style: italic;
   font-weight: 300;
-  font-size: 15px;
+  font-size: 21px;
   line-height: 1.4;
   color: var(--text);
   margin: 8px 0 12px;
@@ -1163,7 +1215,7 @@ body {
   padding: 9px;
   border-radius: 6px;
   font-family: inherit;
-  font-size: 12px;
+  font-size: 17px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.15s;

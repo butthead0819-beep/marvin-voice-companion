@@ -92,6 +92,7 @@ def create_app(bridge: Optional[BridgeClient] = None) -> FastAPI:
     app = FastAPI(lifespan=lifespan)
     app.state.bridge = _bridge
     app.state.clients: Dict[str, WebSocket] = {}
+    app.state.last_channel_snapshot: Optional[dict] = None
 
     # ---------- bridge → browsers 廣播 handler ----------
     async def _broadcast_to_browsers(event: dict) -> None:
@@ -99,6 +100,8 @@ def create_app(bridge: Optional[BridgeClient] = None) -> FastAPI:
         if not validate_event(event):
             logger.warning("[Companion] dropped invalid bridge event: %s", event)
             return
+        if event.get("type") == "voice_channel_snapshot":
+            app.state.last_channel_snapshot = event
         dead = []
         for cid, ws in list(app.state.clients.items()):
             try:
@@ -112,6 +115,10 @@ def create_app(bridge: Optional[BridgeClient] = None) -> FastAPI:
     app.state.bridge.on_event(_broadcast_to_browsers)
 
     # ---------- HTTP routes ----------
+    @app.get("/debug/snapshot")
+    async def debug_snapshot():
+        return JSONResponse(app.state.last_channel_snapshot or {"error": "no snapshot yet"})
+
     @app.get("/")
     async def root():
         if INDEX_HTML.exists():
@@ -187,6 +194,12 @@ def create_app(bridge: Optional[BridgeClient] = None) -> FastAPI:
         client_id = uuid.uuid4().hex[:8]
         app.state.clients[client_id] = websocket
         logger.info("[Companion] browser connected id=%s (total=%d)", client_id, len(app.state.clients))
+        # 補發上次快取的頻道成員快照，讓新連線的瀏覽器不必等下次事件
+        if app.state.last_channel_snapshot is not None:
+            try:
+                await websocket.send_json(app.state.last_channel_snapshot)
+            except Exception as exc:
+                logger.warning("[Companion] failed to replay snapshot to %s: %s", client_id, exc)
         try:
             while True:
                 msg = await websocket.receive_json()
