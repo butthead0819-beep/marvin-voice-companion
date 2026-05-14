@@ -4,7 +4,7 @@
 
 Marvin lives in your Discord voice channel. Most of the time he reads the room well. Sometimes he doesn't — the words are correct but the timing is wrong, or his memory of you is slightly off, or he's about to make a joke right when the conversation turned serious. This is the companion you open when that happens.
 
-> **macOS host + iOS/Mac browser.** Companion runs on the same machine as Marvin (any OS that runs Marvin). The UI is a web app — open it from Safari on your iPhone via Tailscale, or any browser on the Mac itself.
+> **Mac product, iOS-friendly remote.** Companion runs on the same Mac as [Marvin](https://github.com/butthead0819-beep/marvin-voice-core) (Mac is Marvin's target — see Marvin's README). The UI is a web app — open it from Safari on your iPhone via Tailscale, or any browser on the Mac itself. iOS native app is not on the roadmap; the web flow handles everything single-thumb.
 
 ---
 
@@ -54,7 +54,7 @@ This is **the** design constraint of this project. Companion does not own data, 
 
 ## What you need
 
-- A running [marvin-voice-core](https://github.com/butthead0819-beep/marvin-voice-core) with the `companion_bridge` code (the Marvin commits prefixed `feat(companion): ...`)
+- A Mac running [marvin-voice-core](https://github.com/butthead0819-beep/marvin-voice-core) with the `companion_bridge` code (Marvin commits prefixed `feat(companion): ...`). Reference machine: M1 8GB.
 - Python 3.12+
 - `GROQ_API_KEY` for the push-to-talk voice command path (same key Marvin uses)
 - Optional: [Tailscale](https://tailscale.com/) on your Mac + iPhone for remote access
@@ -198,14 +198,20 @@ Design references are in `docs/mockups/` — these are the original HTML mockups
 
 ---
 
-## Roadmap (deferred from v1)
+## Roadmap (deferred from v1, not promised)
 
-- **LLM-based intent classification** — current regex covers commanding speech well, would help with conversational variations and indirect commands
+These are explicit Future Work. None of them are blocking v1; some may never ship if the personal-craft scope doesn't need them.
+
+- **LLM-based intent classification** — current regex covers commanding speech well; LLM would help conversational variations and indirect commands
 - **Streaming audio during PTT** — currently single-blob upload on release; chunked streaming would lower latency for long commands
-- **VOICE_CHANNEL_SNAPSHOT on-connect push** — framework ready, just needs the bridge to know the current voice channel members
-- **iOS native app wrapper** — web works fine via Tailscale; native would enable background mic with VoIP entitlements
-- **Multi-Marvin orchestration** — if you ever run Marvin in multiple Discord servers, the companion needs a server selector
-- **Streaming audio reactions to music** — currently `MusicMemory.record_reactions` captures who reacted; companion shows it after the fact
+- **VOICE_CHANNEL_SNAPSHOT on-connect push** — framework ready, just needs the bridge to know current voice channel members
+- **Multi-Marvin orchestration** — if you ever run Marvin in multiple Discord servers, companion needs a server selector
+- **Streaming reactions to music** — `MusicMemory.record_reactions` captures who reacted; companion shows it after the fact
+
+### Not on the roadmap
+
+- **iOS native app** — web flow handles single-thumb operation via Tailscale; native is scope expansion for problems the maintainer doesn't have
+- **Linux/Windows host** — companion runs where Marvin runs (see [marvin-voice-core's Platform commitment](https://github.com/butthead0819-beep/marvin-voice-core#platform-commitment)); Marvin is a Mac product
 
 ---
 
