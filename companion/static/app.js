@@ -141,6 +141,8 @@
       case 'music_recommendations_response': onMusicRecommendationsResponse(msg.payload); break;
       // Lane F: game mode
       case 'game_phase_changed': onGamePhaseChanged(msg.payload); break;
+      // Lane F2: 防呆雷達
+      case 'game_alert': onGameAlert(msg.payload); break;
       default:
         console.debug('[Companion] unknown event', msg.type);
     }
@@ -448,6 +450,65 @@
         }
       });
     });
+  }
+
+  // -------------------------------------------------------------- Lane F2: 防呆雷達
+  /**
+   * GAME_ALERT payload: {alert_id, text, reason, rule, severity, timeout}
+   * 顯示 alert-card warn → 倒數 → 按鈕 / timeout 後自動回 approve。
+   */
+  const alertState = {
+    activeId: null,
+    timerHandle: null,
+    countdownHandle: null,
+    deadline: 0,
+  };
+
+  function onGameAlert(payload) {
+    if (!payload || !payload.alert_id) return;
+    const card = document.getElementById('alert-card-warn');
+    const msg = document.getElementById('alert-msg');
+    const counter = document.getElementById('alert-countdown');
+    if (!card || !msg) return;
+    alertState.activeId = payload.alert_id;
+    const reason = payload.reason || '（無理由）';
+    const text = payload.text || '';
+    msg.textContent = `Marvin 想說：「${text}」 — ${reason}`;
+    const timeoutSec = Number(payload.timeout) || 2.0;
+    alertState.deadline = (Date.now() / 1000) + timeoutSec;
+    if (counter) counter.textContent = `${timeoutSec.toFixed(1)}s`;
+    card.hidden = false;
+
+    clearAlertTimers();
+    alertState.countdownHandle = setInterval(() => {
+      const remaining = alertState.deadline - (Date.now() / 1000);
+      if (counter) counter.textContent = `${Math.max(0, remaining).toFixed(1)}s`;
+      if (remaining <= 0) {
+        finalizeAlert('approve');  // timeout → 自動讓他說
+      }
+    }, 100);
+  }
+
+  function clearAlertTimers() {
+    if (alertState.timerHandle) { clearTimeout(alertState.timerHandle); alertState.timerHandle = null; }
+    if (alertState.countdownHandle) { clearInterval(alertState.countdownHandle); alertState.countdownHandle = null; }
+  }
+
+  function finalizeAlert(decision) {
+    const card = document.getElementById('alert-card-warn');
+    const id = alertState.activeId;
+    clearAlertTimers();
+    alertState.activeId = null;
+    if (card) card.hidden = true;
+    if (!id) return;
+    send('game_alert_response', { alert_id: id, decision });
+  }
+
+  function bindAlertButtons() {
+    const veto = document.getElementById('alert-btn-veto');
+    const approve = document.getElementById('alert-btn-approve');
+    if (veto) veto.addEventListener('click', () => finalizeAlert('veto'));
+    if (approve) approve.addEventListener('click', () => finalizeAlert('approve'));
   }
 
   function bindGameModeToggle() {
@@ -1149,6 +1210,7 @@
     bindMusicPlayerControls();
     bindGameControls();
     bindGameModeToggle();
+    bindAlertButtons();
     renderBubbles();
     connectWs();
   });

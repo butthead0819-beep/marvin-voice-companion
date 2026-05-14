@@ -1129,3 +1129,44 @@ body {
   color: var(--bg);
   font-weight: 600;
 }
+
+/* ============ 防呆雷達 (Don't-be-dumb radar) ============ */
+.alert-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  position: relative;
+}
+.alert-card.warn {
+  border-color: var(--amber, #d4a942);
+  background: linear-gradient(180deg, var(--amber-glow, rgba(212,169,66,0.08)), var(--surface));
+}
+.alert-msg {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-weight: 300;
+  font-size: 15px;
+  line-height: 1.4;
+  color: var(--text);
+  margin: 8px 0 12px;
+}
+.alert-actions {
+  display: flex;
+  gap: 6px;
+}
+.alert-btn {
+  flex: 1;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 9px;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.alert-btn.primary { border-color: var(--amber, #d4a942); color: var(--amber, #d4a942); }
+.alert-btn:hover { border-color: var(--text); color: var(--text); }

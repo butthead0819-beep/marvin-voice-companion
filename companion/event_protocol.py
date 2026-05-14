@@ -25,6 +25,8 @@ MUSIC_STARTED = "music_started"
 MUSIC_ENDED = "music_ended"
 MUSIC_REACTION = "music_reaction"
 GAME_PHASE_CHANGED = "game_phase_changed"
+# 防呆雷達：Marvin 準備講可能耍笨的話，廣播給 user 是否要攔下
+GAME_ALERT = "game_alert"
 
 # === Browser → companion → bridge（請求 / 控制）===
 ATMOSPHERE_FEEDBACK = "atmosphere_feedback"
@@ -38,6 +40,8 @@ MUSIC_SKIP = "music_skip"
 MUSIC_RECOMMENDATIONS_REQUEST = "music_recommendations_request"
 GAME_FORCE_SKIP_ROUND = "game_force_skip_round"
 GAME_END = "game_end"
+# 防呆雷達回應：user 在 companion 端按下「攔下 / 讓他說」
+GAME_ALERT_RESPONSE = "game_alert_response"
 
 # === Response 型別（bridge → browser，作為 request 的回應）===
 MEMORY_LIST_RESPONSE = "memory_list_response"
@@ -58,6 +62,7 @@ BRIDGE_TO_BROWSER_EVENTS = frozenset(
         MUSIC_ENDED,
         MUSIC_REACTION,
         GAME_PHASE_CHANGED,
+        GAME_ALERT,
         MEMORY_LIST_RESPONSE,
         MUSIC_RECOMMENDATIONS_RESPONSE,
     }
@@ -76,6 +81,7 @@ BROWSER_TO_BRIDGE_EVENTS = frozenset(
         MUSIC_RECOMMENDATIONS_REQUEST,
         GAME_FORCE_SKIP_ROUND,
         GAME_END,
+        GAME_ALERT_RESPONSE,
     }
 )
 

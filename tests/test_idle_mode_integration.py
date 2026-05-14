@@ -259,3 +259,51 @@ def test_voice_channel_snapshot_event_routes_through_ws(app_and_bridge):
             received = ws.receive_json()
             assert received["type"] == "voice_channel_snapshot"
             assert received["payload"]["members"][0]["speaker"] == "Jack"
+
+
+# ------------------------------------------------------------------ Lane F2: 防呆雷達 radar
+
+def test_game_alert_event_type_constant():
+    """event_protocol 須有 GAME_ALERT 與 GAME_ALERT_RESPONSE 常數，且納入 KNOWN_EVENT_TYPES。"""
+    from companion.event_protocol import (
+        GAME_ALERT,
+        GAME_ALERT_RESPONSE,
+        BRIDGE_TO_BROWSER_EVENTS,
+        BROWSER_TO_BRIDGE_EVENTS,
+        KNOWN_EVENT_TYPES,
+    )
+    assert GAME_ALERT == "game_alert"
+    assert GAME_ALERT_RESPONSE == "game_alert_response"
+    assert GAME_ALERT in BRIDGE_TO_BROWSER_EVENTS
+    assert GAME_ALERT_RESPONSE in BROWSER_TO_BRIDGE_EVENTS
+    assert GAME_ALERT in KNOWN_EVENT_TYPES
+    assert GAME_ALERT_RESPONSE in KNOWN_EVENT_TYPES
+
+
+def test_index_html_has_alert_card_elements(app_and_bridge):
+    """index.html 須包含防呆雷達 UI element id：alert-card-warn、alert-msg、按鈕。"""
+    app, _ = app_and_bridge
+    with TestClient(app) as client:
+        html = client.get("/").text
+        assert 'id="alert-card-warn"' in html
+        assert 'id="alert-msg"' in html
+        assert 'id="alert-btn-veto"' in html
+        assert 'id="alert-btn-approve"' in html
+        # 預設隱藏（hidden 屬性）
+        assert 'id="alert-card-warn"' in html and "hidden" in html
+
+
+def test_game_alert_response_browser_to_bridge_forwarded(app_and_bridge):
+    """browser 送 game_alert_response → server forward 到 bridge。"""
+    app, bridge = app_and_bridge
+    with TestClient(app) as client:
+        with client.websocket_connect("/ws") as ws:
+            evt = {
+                "type": "game_alert_response",
+                "payload": {"alert_id": "abc-123", "decision": "veto"},
+                "ts": 101.0,
+            }
+            ws.send_json(evt)
+            import time
+            time.sleep(0.1)
+            assert evt in bridge.sent_messages

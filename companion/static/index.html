@@ -223,6 +223,16 @@
       </div>
     </div>
 
+    <!-- 防呆雷達 alert（預設隱藏，收到 game_alert 才顯示）-->
+    <div class="alert-card warn" id="alert-card-warn" style="margin-top:12px" hidden>
+      <div class="card-label">⚠️ 防呆雷達 <span id="alert-countdown" style="margin-left:6px;color:var(--muted)">2.0s</span></div>
+      <div class="alert-msg" id="alert-msg">—</div>
+      <div class="alert-actions">
+        <button class="alert-btn primary" id="alert-btn-veto" type="button">✋ 攔下</button>
+        <button class="alert-btn" id="alert-btn-approve" type="button">👍 讓他說</button>
+      </div>
+    </div>
+
     <div class="hint" style="margin-top:12px; text-align:center">
       參與中 — Marvin 自己玩，只有可能耍笨時才打擾你
     </div>
