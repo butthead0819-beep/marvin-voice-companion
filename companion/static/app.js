@@ -857,38 +857,168 @@
   }
 
   // -------------------------------------------------------------- voice PTT
+  // 動作 → 中文描述（給使用者看的 toast 顯示）
+  const ACTION_LABEL = {
+    mode_silent: '閉嘴 5 分鐘',
+    mode_serious: '嚴肅模式',
+    mode_resume: '恢復預設',
+    mode_shutup: '完全閉嘴',
+    feedback_too_loud: '太吵回饋',
+    feedback_too_sharp: '太刺回饋',
+    feedback_too_jolly: '太嗨回饋',
+    tts_inject: 'TTS 代言',
+  };
+
+  // 挑一個瀏覽器支援的 mimeType（iOS Safari 偏好 mp4）
+  function pickAudioMime() {
+    if (typeof MediaRecorder === 'undefined') return null;
+    const candidates = [
+      'audio/webm;codecs=opus',
+      'audio/webm',
+      'audio/mp4',
+      'audio/mp4;codecs=mp4a.40.2',
+      'audio/aac',
+    ];
+    for (const m of candidates) {
+      try {
+        if (MediaRecorder.isTypeSupported(m)) return m;
+      } catch (_) { /* ignore */ }
+    }
+    return null;
+  }
+
+  function showToast(text, opts = {}) {
+    // 簡易 toast：固定底部、自動 3s 淡出。重複呼叫會替換內容並重置計時器。
+    let toast = document.getElementById('voice-toast');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.id = 'voice-toast';
+      toast.style.cssText = [
+        'position:fixed', 'left:50%', 'bottom:120px',
+        'transform:translateX(-50%)',
+        'background:rgba(20,20,28,0.92)', 'color:#FFD27A',
+        'padding:14px 20px', 'border-radius:16px',
+        'font-family:"Instrument Sans",system-ui,sans-serif',
+        'font-size:16px', 'line-height:1.4', 'max-width:78vw',
+        'box-shadow:0 8px 24px rgba(0,0,0,0.4)',
+        'z-index:10000', 'opacity:0',
+        'transition:opacity 250ms ease', 'pointer-events:none',
+        'text-align:center', 'white-space:pre-wrap',
+      ].join(';');
+      document.body.appendChild(toast);
+    }
+    toast.textContent = text;
+    toast.style.background = opts.error
+      ? 'rgba(140,30,30,0.92)'
+      : 'rgba(20,20,28,0.92)';
+    toast.style.color = opts.error ? '#FFD7D7' : '#FFD27A';
+    // 強制 reflow → transition 才會跑
+    void toast.offsetWidth;
+    toast.style.opacity = '1';
+    clearTimeout(state._voiceToastTimer);
+    state._voiceToastTimer = setTimeout(() => {
+      toast.style.opacity = '0';
+    }, opts.durationMs || 3000);
+  }
+
+  async function uploadAudioBlob(blob, btn, labelEl) {
+    if (!blob || blob.size === 0) {
+      showToast('沒有錄到聲音', { error: true });
+      return;
+    }
+    const form = new FormData();
+    const filename = blob.type.includes('mp4') ? 'ptt.mp4' : 'ptt.webm';
+    form.append('audio', blob, filename);
+
+    btn.classList.add('uploading');
+    btn.disabled = true;
+    if (labelEl) labelEl.textContent = '辨識中…';
+    try {
+      const r = await fetch('/audio', { method: 'POST', body: form });
+      if (!r.ok) {
+        let detail = '上傳失敗，請重試';
+        if (r.status === 503) detail = '伺服器尚未設定 GROQ_API_KEY';
+        try {
+          const errBody = await r.json();
+          if (errBody && errBody.detail) detail = errBody.detail;
+        } catch (_) { /* ignore */ }
+        showToast(detail, { error: true });
+        return;
+      }
+      const data = await r.json();
+      console.log('[Companion] /audio result', data);
+      const text = (data.text || '').trim();
+      const intent = data.intent;
+      let toastLine;
+      if (!text) {
+        toastLine = '沒有辨識到內容';
+        showToast(toastLine, { error: true });
+      } else if (intent && intent !== 'unknown') {
+        const label = ACTION_LABEL[intent] || intent;
+        toastLine = `「${text}」\n→ ${label} 已執行`;
+        showToast(toastLine);
+      } else {
+        toastLine = `「${text}」`;
+        showToast(toastLine);
+      }
+    } catch (err) {
+      console.warn('[Companion] /audio upload failed', err);
+      showToast('上傳失敗，請重試', { error: true });
+    } finally {
+      btn.classList.remove('uploading');
+      btn.disabled = false;
+      if (labelEl) labelEl.textContent = '按住說話';
+    }
+  }
+
   function bindVoiceButton() {
     const btn = els.voiceButton();
     if (!btn) return;
+    const labelEl = document.getElementById('voice-label');
+    let activeStream = null;
+    let activeMime = null;
+
     const start = async (e) => {
       e.preventDefault();
+      if (btn.disabled) return; // 上傳中不可重觸發
+      if (state.recorder && state.recorder.state === 'recording') return;
       btn.classList.add('recording');
-      document.getElementById('voice-label').textContent = '錄音中…';
+      if (labelEl) labelEl.textContent = '錄音中…';
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        activeStream = stream;
         state.recordChunks = [];
-        const recorder = new MediaRecorder(stream);
+        const mime = pickAudioMime();
+        activeMime = mime;
+        const recorder = mime
+          ? new MediaRecorder(stream, { mimeType: mime })
+          : new MediaRecorder(stream);
         state.recorder = recorder;
         recorder.ondataavailable = (ev) => {
-          if (ev.data.size > 0) state.recordChunks.push(ev.data);
+          if (ev.data && ev.data.size > 0) state.recordChunks.push(ev.data);
         };
         recorder.onstop = () => {
-          stream.getTracks().forEach((t) => t.stop());
-          const blob = new Blob(state.recordChunks, { type: 'audio/webm' });
-          console.log('[Companion] PTT audio size=', blob.size, 'bytes');
-          // 真正的 STT 路由是 Lane G 工作；此處只 stub
+          if (activeStream) {
+            activeStream.getTracks().forEach((t) => t.stop());
+            activeStream = null;
+          }
+          const blobType = activeMime || 'audio/webm';
+          const blob = new Blob(state.recordChunks, { type: blobType });
+          console.log('[Companion] PTT audio size=', blob.size, 'bytes type=', blobType);
+          uploadAudioBlob(blob, btn, labelEl);
         };
         recorder.start();
       } catch (err) {
         console.warn('[Companion] mic access failed', err);
         btn.classList.remove('recording');
-        document.getElementById('voice-label').textContent = '按住說話';
+        if (labelEl) labelEl.textContent = '按住說話';
+        showToast('麥克風存取失敗', { error: true });
       }
     };
     const stop = (e) => {
-      e.preventDefault();
+      if (e && e.preventDefault) e.preventDefault();
       btn.classList.remove('recording');
-      document.getElementById('voice-label').textContent = '按住說話';
+      // label 在 uploadAudioBlob 內負責切換到「辨識中…」
       if (state.recorder && state.recorder.state === 'recording') {
         state.recorder.stop();
       }

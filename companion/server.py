@@ -10,13 +10,17 @@
 from __future__ import annotations
 
 import logging
+import os
+import tempfile
+import time
 import uuid
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Dict, Optional
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from fastapi.responses import FileResponse, HTMLResponse
+import aiohttp
+from fastapi import FastAPI, File, HTTPException, UploadFile, WebSocket, WebSocketDisconnect
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from companion.bridge_client import BridgeClient
@@ -24,11 +28,42 @@ from companion.event_protocol import (
     BROWSER_TO_BRIDGE_EVENTS,
     validate_event,
 )
+from companion.intent import classify_intent
 
 logger = logging.getLogger(__name__)
 
 STATIC_DIR = Path(__file__).parent / "static"
 INDEX_HTML = STATIC_DIR / "index.html"
+
+GROQ_STT_URL = "https://api.groq.com/openai/v1/audio/transcriptions"
+GROQ_STT_MODEL = "whisper-large-v3-turbo"
+
+
+async def _call_groq_stt(file_path: str, api_key: str) -> str:
+    """呼叫 Groq Whisper STT，回傳轉錄文字。
+
+    Args:
+        file_path: 暫存音檔絕對路徑
+        api_key: Groq API key
+
+    Returns:
+        轉錄出來的純文字（去頭尾空白）。失敗則回傳空字串。
+    """
+    headers = {"Authorization": f"Bearer {api_key}"}
+    timeout = aiohttp.ClientTimeout(total=30)
+    async with aiohttp.ClientSession(timeout=timeout) as session:
+        with open(file_path, "rb") as f:
+            data = aiohttp.FormData()
+            data.add_field("file", f, filename=Path(file_path).name, content_type="audio/webm")
+            data.add_field("model", GROQ_STT_MODEL)
+            data.add_field("response_format", "json")
+            async with session.post(GROQ_STT_URL, headers=headers, data=data) as resp:
+                if resp.status != 200:
+                    body = await resp.text()
+                    logger.warning("[Companion] Groq STT 失敗 status=%s body=%s", resp.status, body[:200])
+                    return ""
+                payload = await resp.json()
+                return (payload.get("text") or "").strip()
 
 
 def create_app(bridge: Optional[BridgeClient] = None) -> FastAPI:
@@ -86,6 +121,64 @@ def create_app(bridge: Optional[BridgeClient] = None) -> FastAPI:
 
     if STATIC_DIR.exists():
         app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+
+    # ---------- POST /audio：PTT 音檔上傳 → Groq STT → 意圖分類 → bridge ----------
+    @app.post("/audio")
+    async def upload_audio(audio: UploadFile = File(...)):
+        """接收 webm/opus（或 mp4）音檔，呼叫 Groq STT，分類意圖並 forward 到 bridge。
+
+        回傳：`{text, engine, intent, action, payload}`
+        失敗：
+        - 缺 GROQ_API_KEY → 503
+        - Groq 呼叫失敗 → text 空字串 + intent="unknown"
+        """
+        api_key = (os.getenv("GROQ_API_KEY") or "").strip()
+        if not api_key:
+            raise HTTPException(
+                status_code=503,
+                detail="GROQ_API_KEY 未設定，無法執行語音轉文字。請在 .env 補上後重啟。",
+            )
+
+        # 先把上傳檔寫入暫存檔，finally 一定清掉
+        suffix = ".webm"
+        ct = (audio.content_type or "").lower()
+        if "mp4" in ct or "m4a" in ct or "aac" in ct:
+            suffix = ".mp4"
+        elif "ogg" in ct:
+            suffix = ".ogg"
+        tmp = tempfile.NamedTemporaryFile(suffix=suffix, delete=False)
+        tmp_path = tmp.name
+        try:
+            content = await audio.read()
+            tmp.write(content)
+            tmp.close()
+
+            text = await _call_groq_stt(tmp_path, api_key)
+            result = classify_intent(text)
+            intent = result["intent"]
+            action = result["action"]
+            payload = result["payload"]
+
+            # 非 unknown → forward 到 bridge
+            if intent != "unknown" and action:
+                evt = {"type": action, "payload": payload, "ts": time.time()}
+                try:
+                    await app.state.bridge.send(evt)
+                except Exception as exc:
+                    logger.warning("[Companion] bridge.send failed: %s", exc)
+
+            return {
+                "text": text,
+                "engine": "Groq",
+                "intent": intent,
+                "action": action,
+                "payload": payload,
+            }
+        finally:
+            try:
+                Path(tmp_path).unlink(missing_ok=True)
+            except Exception:
+                pass
 
     # ---------- WebSocket ----------
     @app.websocket("/ws")
