@@ -27,6 +27,9 @@ MUSIC_REACTION = "music_reaction"
 GAME_PHASE_CHANGED = "game_phase_changed"
 # 防呆雷達：Marvin 準備講可能耍笨的話，廣播給 user 是否要攔下
 GAME_ALERT = "game_alert"
+# Lane G: 環境智能助理
+TEMPERATURE_UPDATE = "temperature_update"
+TOPIC_GENERATED = "topic_generated"
 
 # === Browser → companion → bridge（請求 / 控制）===
 ATMOSPHERE_FEEDBACK = "atmosphere_feedback"
@@ -65,6 +68,8 @@ BRIDGE_TO_BROWSER_EVENTS = frozenset(
         GAME_ALERT,
         MEMORY_LIST_RESPONSE,
         MUSIC_RECOMMENDATIONS_RESPONSE,
+        TEMPERATURE_UPDATE,
+        TOPIC_GENERATED,
     }
 )
 

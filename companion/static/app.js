@@ -143,6 +143,9 @@
       case 'game_phase_changed': onGamePhaseChanged(msg.payload); break;
       // Lane F2: 防呆雷達
       case 'game_alert': onGameAlert(msg.payload); break;
+      // Lane G: 環境智能助理
+      case 'temperature_update': onTemperatureUpdate(msg.payload); break;
+      case 'topic_generated': onTopicGenerated(msg.payload); break;
       default:
         console.debug('[Companion] unknown event', msg.type);
     }
@@ -1222,6 +1225,33 @@
     renderBubbles();
     connectWs();
   });
+
+  // -------------------------------------------------------------- Lane G: 環境智能助理
+
+  function onTemperatureUpdate(payload) {
+    const level = (payload.level || '').toLowerCase();
+    const value = payload.value || 0;
+    const pill = document.getElementById('temperature-pill');
+    const label = document.getElementById('temperature-level');
+    if (!pill || !label) return;
+    const labels = { cold: '❄️ COLD', warm: '🌿 WARM', hot: '🔥 HOT' };
+    const colors = { cold: '#5ab4f0', warm: '#5aad6e', hot: '#e86c4a' };
+    label.textContent = (labels[level] || level.toUpperCase()) + ` (${value.toFixed(2)})`;
+    pill.style.borderColor = colors[level] || '';
+    pill.hidden = false;
+  }
+
+  function onTopicGenerated(payload) {
+    const topics = payload.topics || [];
+    const trigger = payload.trigger || 'auto';
+    const card = document.getElementById('topic-card');
+    const list = document.getElementById('topic-list');
+    const triggerEl = document.getElementById('topic-trigger');
+    if (!card || !list) return;
+    list.innerHTML = topics.map(t => `<li>${t}</li>`).join('');
+    if (triggerEl) triggerEl.textContent = trigger === 'manual' ? '（手動觸發）' : '（自動觸發）';
+    card.hidden = topics.length === 0;
+  }
 
   // expose for debug
   window.__marvin = { state, send };
