@@ -146,6 +146,8 @@
       // Lane G: 環境智能助理
       case 'temperature_update': onTemperatureUpdate(msg.payload); break;
       case 'topic_generated': onTopicGenerated(msg.payload); break;
+      // Lane H: 語音日記 Recall
+      case 'recall_result': onRecallResult(msg.payload); break;
       default:
         console.debug('[Companion] unknown event', msg.type);
     }
@@ -1251,6 +1253,24 @@
     list.innerHTML = topics.map(t => `<li>${t}</li>`).join('');
     if (triggerEl) triggerEl.textContent = trigger === 'manual' ? '（手動觸發）' : '（自動觸發）';
     card.hidden = topics.length === 0;
+  }
+
+  function onRecallResult(payload) {
+    const card = document.getElementById('recall-card');
+    const queryEl = document.getElementById('recall-query');
+    const answerEl = document.getElementById('recall-answer');
+    const tsEl = document.getElementById('recall-ts');
+    if (!card || !answerEl) return;
+    if (queryEl) queryEl.textContent = `「${payload.query || ''}」`;
+    answerEl.textContent = payload.answer || '';
+    if (tsEl) {
+      const d = new Date((payload.ts || Date.now() / 1000) * 1000);
+      tsEl.textContent = d.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' });
+    }
+    card.hidden = false;
+    // 30 秒後自動收起
+    clearTimeout(card._hideTimer);
+    card._hideTimer = setTimeout(() => { card.hidden = true; }, 30000);
   }
 
   // expose for debug

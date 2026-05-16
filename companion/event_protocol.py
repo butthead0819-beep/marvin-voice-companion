@@ -30,6 +30,8 @@ GAME_ALERT = "game_alert"
 # Lane G: 環境智能助理
 TEMPERATURE_UPDATE = "temperature_update"
 TOPIC_GENERATED = "topic_generated"
+# Lane H: 語音日記 Recall
+RECALL_RESULT = "recall_result"
 
 # === Browser → companion → bridge（請求 / 控制）===
 ATMOSPHERE_FEEDBACK = "atmosphere_feedback"
@@ -70,6 +72,7 @@ BRIDGE_TO_BROWSER_EVENTS = frozenset(
         MUSIC_RECOMMENDATIONS_RESPONSE,
         TEMPERATURE_UPDATE,
         TOPIC_GENERATED,
+        RECALL_RESULT,
     }
 )
 
